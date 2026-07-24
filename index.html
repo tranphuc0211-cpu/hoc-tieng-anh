@@ -460,14 +460,14 @@ function pushToCloud(){
 }
 
 function pullFromCloud(){
-  if(!cloudAvailable){ setSyncStatus('⚠ Không có kết nối cloud, dùng dữ liệu trên máy này', true); return; }
+  if(!cloudAvailable){ setSyncStatus('⚠ Không có kết nối cloud, dùng dữ liệu trên máy này', true); return Promise.resolve(); }
   setSyncStatus('⏳ Đang tải dữ liệu mới nhất...', false);
-  cloudDocRef.get().then(doc=>{
+  return cloudDocRef.get().then(doc=>{
     if(doc.exists){
       const remote = doc.data();
       if(remote && Array.isArray(remote.data)){
         DATA = remote.data;
-        safeSet(STORAGE_KEY, JSON.stringify(DATA)); // cache lại máy này, không đẩy ngược lên cloud
+        saveLocalOnly(); // cache lại máy này, không đẩy ngược lên cloud
         refreshFlashcard();
         refreshQuizCategoryOptions();
         renderOverview();
@@ -475,7 +475,10 @@ function pullFromCloud(){
       }
       setSyncStatus('☁ Đã đồng bộ lúc ' + new Date().toLocaleTimeString('vi-VN'), false);
     } else {
-      // Cloud chưa có dữ liệu (lần đầu dùng) -> đẩy dữ liệu hiện tại lên làm dữ liệu gốc
+      // Cloud thực sự chưa có tài liệu nào (lần đầu tiên dùng app trên BẤT KỲ thiết bị nào)
+      // -> lúc này mới đẩy dữ liệu hiện tại (mẫu) lên làm dữ liệu gốc. Việc kiểm tra doc.exists
+      // trước khi đẩy là mấu chốt để không ghi đè mất dữ liệu thật từ thiết bị khác.
+      saveLocalOnly();
       pushToCloud();
     }
   }).catch(err=>{
@@ -555,20 +558,20 @@ function loadData(){
   if(raw){
     try{ DATA = JSON.parse(raw); showStorageWarningIfNeeded(); return; }catch(e){ /* fallthrough */ }
   }
-  const initialized = safeGet(INIT_FLAG_KEY);
-  if(!initialized){
-    DATA = SAMPLE_DATA.map(it => ({
-      id: uid(), status:'new', correct:0, wrong:0, lastReviewed:null, ...it
-    }));
-    safeSet(INIT_FLAG_KEY, '1');
-    saveData();
-  } else {
-    DATA = [];
-  }
+  // Máy này chưa có dữ liệu cục bộ: tạm hiển thị bộ dữ liệu mẫu ngay để không trống trang,
+  // nhưng TUYỆT ĐỐI KHÔNG đẩy lên cloud ở đây. Phải chờ pullFromCloud() kiểm tra xem cloud
+  // đã có dữ liệu thật từ thiết bị khác chưa — nếu đẩy vội sẽ ghi đè mất dữ liệu thật.
+  DATA = SAMPLE_DATA.map(it => ({
+    id: uid(), status:'new', correct:0, wrong:0, lastReviewed:null, ...it
+  }));
+  saveLocalOnly();
   showStorageWarningIfNeeded();
 }
-function saveData(){
+function saveLocalOnly(){
   safeSet(STORAGE_KEY, JSON.stringify(DATA));
+}
+function saveData(){
+  saveLocalOnly();
   pushToCloud();
 }
 
