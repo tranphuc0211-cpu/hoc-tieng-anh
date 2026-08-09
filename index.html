@@ -172,6 +172,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="card">
       <div class="stat-pills" id="fcStatPills"></div>
       <div class="filters row">
+        <input type="text" id="fcSearch" placeholder="🔍 Tìm từ / cấu trúc / nghĩa..." style="min-width:220px;flex:1;" oninput="fcApplyFilters()">
         <select id="fcType" onchange="fcApplyFilters()">
           <option value="all">Tất cả loại</option>
           <option value="vocab">Từ vựng</option>
@@ -614,6 +615,7 @@ let fcIndex = 0;
 let fcFlipped = false;
 
 function fcApplyFilters(){
+  const search = document.getElementById('fcSearch').value.trim().toLowerCase();
   const type = document.getElementById('fcType').value;
   const cat = document.getElementById('fcCategory').value;
   const status = document.getElementById('fcStatus').value;
@@ -621,6 +623,10 @@ function fcApplyFilters(){
     if(type!=='all' && d.type!==type) return false;
     if(cat!=='all' && d.category!==cat) return false;
     if(status!=='all' && d.status!==status) return false;
+    if(search){
+      const hay = `${d.term} ${d.meaning} ${d.example}`.toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
     return true;
   });
   fcIndex = 0;
