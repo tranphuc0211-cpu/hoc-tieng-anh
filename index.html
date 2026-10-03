@@ -1753,11 +1753,10 @@ function importBackupFile(evt){
 
 /* ============================================================
    MÃ PIN — chỉ che giao diện, KHÔNG bảo vệ dữ liệu trên Firestore.
-   Mã lưu dạng băm (không lưu PIN gốc). Máy nhớ sau lần nhập đúng đầu tiên.
-   Đổi PIN: thay PIN_HASH bằng pinHash('<PIN mới>') — mọi máy sẽ phải nhập lại.
+   Mã lưu dạng băm (không lưu PIN gốc). Mỗi lần mở / tải lại app đều phải nhập (không nhớ theo máy).
+   Đổi PIN: thay PIN_HASH bằng pinHash('<PIN mới>').
 ============================================================ */
 const PIN_HASH = '7e261904';
-const PIN_OK_KEY = 'tkmb_pin_ok_v1';
 function pinHash(pin){
   // FNV-1a 32-bit, viết thuần JS để chạy được cả khi mở file trực tiếp (file://)
   let h = 0x811c9dc5;
@@ -1773,7 +1772,6 @@ function unlockApp(){
 function submitPin(){
   const input = document.getElementById('pinInput');
   if(pinHash(input.value.trim()) === PIN_HASH){
-    safeSet(PIN_OK_KEY, PIN_HASH);
     unlockApp();
   } else {
     input.value = '';
@@ -1788,8 +1786,8 @@ function submitPin(){
    INIT
 ============================================================ */
 window.addEventListener('DOMContentLoaded', ()=>{
-  if(safeGet(PIN_OK_KEY) === PIN_HASH) unlockApp();
-  else setTimeout(()=>{ const i = document.getElementById('pinInput'); if(i) i.focus(); }, 50);
+  try{ localStorage.removeItem('tkmb_pin_ok_v1'); }catch(e){} // dọn dấu "đã nhập PIN" của bản cũ
+  setTimeout(()=>{ const i = document.getElementById('pinInput'); if(i) i.focus(); }, 50);
 });
 function startApp(){
   try{
