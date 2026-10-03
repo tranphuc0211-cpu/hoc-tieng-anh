@@ -71,10 +71,59 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
   /* Flashcard */
   #flashcardStage{display:flex;flex-direction:column;align-items:center;gap:18px;}
-  .flip-wrap{width:100%;max-width:520px;height:280px;perspective:1200px;cursor:pointer;}
+  /* Chồng thẻ: 2 thẻ kế tiếp nằm phía sau, thẻ trên cùng vuốt được */
+  .card-stack{position:relative;width:100%;max-width:520px;height:280px;margin-bottom:30px;}
+  .stack-ghost{position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,var(--navy),#3255c4);color:#fff;display:flex;align-items:center;justify-content:center;padding:44px 20px 20px;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.12);transition:transform .25s ease-out, opacity .25s ease-out;}
+  .stack-ghost.ghost-1{transform:translateY(16px) scale(.95);opacity:.7;z-index:2;}
+  .stack-ghost.ghost-2{transform:translateY(32px) scale(.90);opacity:.4;z-index:1;}
+  .card-stack.promote .ghost-1{transform:none;opacity:1;}
+  .card-stack.promote .ghost-2{transform:translateY(16px) scale(.95);opacity:.7;}
+  .card-stack.no-anim, .card-stack.no-anim *{transition:none !important;}
+  .flip-wrap{position:absolute;inset:0;z-index:3;perspective:1200px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;will-change:transform;}
+  .flip-wrap:active{cursor:grabbing;}
+  .swipe-stamp{position:absolute;top:22px;z-index:5;padding:4px 14px;border:3px solid;border-radius:10px;font-size:22px;font-weight:800;letter-spacing:1px;background:rgba(255,255,255,.92);opacity:0;pointer-events:none;}
+  .stamp-right{left:20px;color:var(--green);border-color:var(--green);transform:rotate(-12deg);}
+  .stamp-left{right:20px;color:var(--red);border-color:var(--red);transform:rotate(12deg);}
+  .stamp-up{top:auto;bottom:24px;left:50%;color:#b38600;border-color:var(--yellow);transform:translateX(-50%);}
+  .swipe-hint{font-size:12px;color:#9aa1b5;margin-top:-6px;}
+  /* Thanh tiến độ của lượt học */
+  .session-bar{width:100%;max-width:520px;height:8px;background:#dde3f3;border-radius:999px;overflow:hidden;}
+  .session-fill{height:100%;width:0;background:linear-gradient(90deg,var(--orange),#ffb84d);border-radius:999px;transition:width .3s ease-out;}
+  .session-summary{width:100%;max-width:520px;text-align:center;}
+  .session-summary .stat-pills{justify-content:center;margin:14px 0;}
+  .summary-title{font-size:24px;font-weight:800;color:var(--navy);margin-bottom:6px;}
+  .confetti-canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60;}
+  /* Hiệu ứng Quiz: lắc khi sai, nảy khi đúng */
+  @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}
+  @keyframes pop{0%{transform:scale(1);}40%{transform:scale(1.04);}100%{transform:scale(1);}}
+  .anim-shake{animation:shake .4s ease-in-out;}
+  .anim-pop{animation:pop .35s ease-out;}
+  .fill-input.correct{border-color:var(--green);background:#e6f6ec;}
+  .fill-input.wrong{border-color:var(--red);background:#fdeaea;}
+  /* Màn hình mã PIN */
+  .pin-gate{position:fixed;inset:0;z-index:100;background:linear-gradient(135deg,var(--navy),#3255c4);display:flex;align-items:center;justify-content:center;padding:16px;}
+  .pin-box{background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:340px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.25);}
+  .pin-logo{font-size:40px;}
+  .pin-box h2{margin:6px 0 4px;color:var(--navy);}
+  .pin-box p{margin:0 0 16px;color:var(--muted);font-size:14px;}
+  #pinInput{width:100%;padding:10px;margin-bottom:12px;border:1px solid var(--border);border-radius:10px;font-size:24px;letter-spacing:8px;text-align:center;}
+  .pin-box .btn{width:100%;padding:12px;font-size:16px;}
+  .pin-msg{min-height:18px;margin-top:10px;font-size:13px;font-weight:600;color:var(--red);}
+  @media (prefers-reduced-motion: reduce){
+    .flip-inner, .flip-wrap, .stack-ghost, .session-fill{transition:none !important;}
+    .anim-shake, .anim-pop{animation:none !important;}
+  }
   .flip-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d;}
   .flip-wrap.flipped .flip-inner{transform:rotateY(180deg);}
-  .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.12);}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:44px 20px 20px;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.12);overflow-y:auto;}
+  /* margin:auto căn giữa theo chiều dọc mà không cắt mất phần đầu khi nội dung dài hơn thẻ */
+  .face > .term, .face > .meaning{margin-top:auto;}
+  .face > .hint, .face > .example{margin-bottom:auto;}
+  .face.long .term{font-size:22px;}
+  .face.long .meaning{font-size:17px;}
+  .face.long .example{font-size:13px;}
+  .face.very-long .meaning{font-size:15px;}
+  .face.very-long .example{font-size:12px;}
   .face.front{background:linear-gradient(135deg,var(--navy),#3255c4);color:#fff;}
   .face.back{background:#fff;border:1px solid var(--border);transform:rotateY(180deg);}
   .face .type-tag{position:absolute;top:14px;left:14px;font-size:11px;background:rgba(255,255,255,.25);padding:3px 10px;border-radius:999px;}
@@ -147,6 +196,18 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 </head>
 <body>
 
+<!-- Màn hình nhập mã PIN (che giao diện trước khi vào app) -->
+<div class="pin-gate" id="pinGate">
+  <div class="pin-box">
+    <div class="pin-logo">📚</div>
+    <h2>Học Tiếng Anh</h2>
+    <p>Nhập mã PIN để vào học</p>
+    <input type="password" id="pinInput" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="8" placeholder="••••" onkeydown="if(event.key==='Enter') submitPin()">
+    <button class="btn btn-orange" onclick="submitPin()">Vào học</button>
+    <div class="pin-msg" id="pinMsg"></div>
+  </div>
+</div>
+
 <header>
   <div>
     <h1>📚 Học Tiếng Anh - Từ Vựng &amp; Ngữ Pháp</h1>
@@ -192,33 +253,51 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
     <div id="flashcardStage">
       <div class="progress-text" id="fcProgress"></div>
-      <div class="flip-wrap" id="fcFlipWrap" onclick="fcFlip()">
-        <div class="flip-inner" id="fcFlipInner">
-          <div class="face front">
-            <span class="type-tag" id="fcTypeTagFront"></span>
-            <span class="status-badge" id="fcStatusBadgeFront"></span>
-            <div class="term" id="fcTermFront"></div>
-            <div class="phonetic" id="fcPhoneticFront"></div>
-            <button class="speak-btn" id="fcSpeakBtn" onclick="event.stopPropagation();fcSpeak()">🔊</button>
-            <div class="hint">Nhấn để xem nghĩa</div>
-          </div>
-          <div class="face back">
-            <span class="type-tag" id="fcTypeTagBack"></span>
-            <span class="status-badge" id="fcStatusBadgeBack"></span>
-            <div class="meaning" id="fcMeaningBack"></div>
-            <div class="example" id="fcExampleBack"></div>
+      <div class="session-bar" id="fcSessionBar"><div class="session-fill" id="fcSessionFill"></div></div>
+      <div class="card-stack" id="fcStack">
+        <div class="stack-ghost ghost-2"><span class="term" id="fcGhost2"></span></div>
+        <div class="stack-ghost ghost-1"><span class="term" id="fcGhost1"></span></div>
+        <div class="flip-wrap" id="fcFlipWrap">
+          <div class="swipe-stamp stamp-right">ĐÃ NHỚ</div>
+          <div class="swipe-stamp stamp-left">CHƯA NHỚ</div>
+          <div class="swipe-stamp stamp-up">TRUNG BÌNH</div>
+          <div class="flip-inner" id="fcFlipInner">
+            <div class="face front">
+              <span class="type-tag" id="fcTypeTagFront"></span>
+              <span class="status-badge" id="fcStatusBadgeFront"></span>
+              <div class="term" id="fcTermFront"></div>
+              <div class="phonetic" id="fcPhoneticFront"></div>
+              <button class="speak-btn" id="fcSpeakBtn" onclick="event.stopPropagation();fcSpeak()">🔊</button>
+              <div class="hint">Nhấn để xem nghĩa</div>
+            </div>
+            <div class="face back">
+              <span class="type-tag" id="fcTypeTagBack"></span>
+              <span class="status-badge" id="fcStatusBadgeBack"></span>
+              <div class="meaning" id="fcMeaningBack"></div>
+              <div class="example" id="fcExampleBack"></div>
+            </div>
           </div>
         </div>
       </div>
+      <div class="swipe-hint">← Chưa nhớ &nbsp;·&nbsp; ↑ Trung bình &nbsp;·&nbsp; Đã nhớ →</div>
       <div class="flash-controls">
-        <button class="btn btn-red" onclick="fcMark('chua_nho')">😕 Chưa nhớ</button>
-        <button class="btn" style="background:var(--yellow);color:#fff;" onclick="fcMark('trung_binh')">😐 Trung bình</button>
-        <button class="btn btn-green" onclick="fcMark('da_nho')">😄 Đã nhớ</button>
+        <button class="btn btn-red" onclick="flyOut('left')">😕 Chưa nhớ</button>
+        <button class="btn" style="background:var(--yellow);color:#fff;" onclick="flyOut('up')">😐 Trung bình</button>
+        <button class="btn btn-green" onclick="flyOut('right')">😄 Đã nhớ</button>
       </div>
       <div class="flash-nav">
         <button class="btn btn-outline btn-sm" onclick="fcNav(-1)">‹ Trước</button>
         <span class="progress-text" id="fcCounter"></span>
         <button class="btn btn-outline btn-sm" onclick="fcNav(1)">Tiếp ›</button>
+      </div>
+      <div class="card session-summary" id="fcSummary" style="display:none;">
+        <div class="summary-title">🎉 Hoàn thành lượt học!</div>
+        <div class="progress-text" id="fcSummarySub"></div>
+        <div class="stat-pills" id="fcSummaryPills"></div>
+        <div class="row" style="justify-content:center;">
+          <button class="btn btn-primary" onclick="fcApplyFilters()">🔁 Học lại lượt mới</button>
+          <button class="btn btn-red" id="fcStudyWeakBtn" onclick="fcStudyWeak()">😕 Chỉ học thẻ Chưa nhớ</button>
+        </div>
       </div>
     </div>
   </section>
@@ -435,6 +514,16 @@ const firebaseConfig = {
 let cloudDb = null;
 let cloudDocRef = null;
 let cloudAvailable = false;
+/* cloudReady: chỉ bật sau khi đã đọc được dữ liệu mới nhất từ cloud (server, không phải cache).
+   Trước đó mọi thay đổi chỉ lưu trên máy (pendingPush) — tránh đè dữ liệu thật trên cloud
+   bằng dữ liệu mẫu của máy mới, hoặc bằng dữ liệu cũ của một tab để mở lâu ngày. */
+let cloudReady = false;
+let pendingPush = false;
+let cloudUnsubscribe = null;
+const BACKUP_DAY_KEY = 'tkmb_last_backup_day';
+/* Thứ tự trường cố định để so sánh dữ liệu (Firestore trả về các trường theo thứ tự a-z) */
+const ITEM_FIELDS = ['id','type','term','phonetic','meaning','example','blank','category','status','correct','wrong','lastReviewed'];
+function sameData(a, b){ return JSON.stringify(a, ITEM_FIELDS) === JSON.stringify(b, ITEM_FIELDS); }
 try{
   firebase.initializeApp(firebaseConfig);
   cloudDb = firebase.firestore();
@@ -455,37 +544,127 @@ function setSyncStatus(msg, isError){
 
 function pushToCloud(){
   if(!cloudAvailable) return;
+  if(!cloudReady){
+    // Chưa đọc được cloud: giữ thay đổi trên máy, sẽ gộp và đẩy lên sau khi pullFromCloud() xong.
+    pendingPush = true;
+    setSyncStatus('⏳ Chưa kết nối cloud — thay đổi đang lưu tạm trên máy này', true);
+    return;
+  }
+  pendingPush = false;
   cloudDocRef.set({ data: DATA, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
     .then(()=> setSyncStatus('☁ Đã đồng bộ lúc ' + new Date().toLocaleTimeString('vi-VN'), false))
     .catch(err=>{ console.error(err); setSyncStatus('⚠ Chưa đồng bộ được (mất mạng?) — sẽ tự thử lại', true); });
 }
 
+/* Gộp dữ liệu cloud với dữ liệu trên máy: lấy cloud làm gốc, nhưng mục nào trên máy
+   được học gần đây hơn (lastReviewed mới hơn) thì giữ tiến trình học của máy.
+   changed = true nghĩa là kết quả khác bản trên cloud, cần đẩy lên lại. */
+function mergeRemote(remoteData){
+  const localById = new Map(DATA.map(d=>[d.id, d]));
+  let changed = false;
+  const merged = remoteData.map(r=>{
+    const l = localById.get(r.id);
+    if(l && l.lastReviewed && (!r.lastReviewed || l.lastReviewed > r.lastReviewed)){
+      changed = true;
+      return {...r, status:l.status, correct:l.correct, wrong:l.wrong, lastReviewed:l.lastReviewed};
+    }
+    return r;
+  });
+  return {merged, changed};
+}
+
 function pullFromCloud(){
   if(!cloudAvailable){ setSyncStatus('⚠ Không có kết nối cloud, dùng dữ liệu trên máy này', true); return Promise.resolve(); }
+  cloudReady = false;
   setSyncStatus('⏳ Đang tải dữ liệu mới nhất...', false);
-  return cloudDocRef.get().then(doc=>{
+  // source:'server' — không chấp nhận bản cache cũ khi mất mạng, tránh gộp với dữ liệu lỗi thời.
+  return cloudDocRef.get({source:'server'}).then(doc=>{
     if(doc.exists){
       const remote = doc.data();
-      if(remote && Array.isArray(remote.data)){
-        DATA = remote.data;
-        saveLocalOnly(); // cache lại máy này, không đẩy ngược lên cloud
-        refreshFlashcard();
-        refreshQuizCategoryOptions();
-        renderOverview();
-        renderStatPills();
+      if(!remote || !Array.isArray(remote.data)){
+        setSyncStatus('⚠ Dữ liệu trên cloud không hợp lệ — tạm dùng dữ liệu trên máy này', true);
+        return;
       }
-      setSyncStatus('☁ Đã đồng bộ lúc ' + new Date().toLocaleTimeString('vi-VN'), false);
+      const {merged, changed} = mergeRemote(remote.data);
+      DATA = merged;
+      saveLocalOnly(); // cache lại máy này
+      applyDataToUI();
+      cloudReady = true;
+      pendingPush = false;
+      if(changed) pushToCloud();
+      else setSyncStatus('☁ Đã đồng bộ lúc ' + new Date().toLocaleTimeString('vi-VN'), false);
     } else {
       // Cloud thực sự chưa có tài liệu nào (lần đầu tiên dùng app trên BẤT KỲ thiết bị nào)
       // -> lúc này mới đẩy dữ liệu hiện tại (mẫu) lên làm dữ liệu gốc. Việc kiểm tra doc.exists
       // trước khi đẩy là mấu chốt để không ghi đè mất dữ liệu thật từ thiết bị khác.
       saveLocalOnly();
+      cloudReady = true;
       pushToCloud();
     }
+    startCloudListener();
+    takeDailySnapshot();
   }).catch(err=>{
     console.error(err);
     setSyncStatus('⚠ Không kết nối được cloud, đang dùng dữ liệu trên máy này', true);
   });
+}
+
+/* Nhận thay đổi từ thiết bị khác theo thời gian thực */
+function startCloudListener(){
+  if(cloudUnsubscribe || !cloudAvailable) return;
+  cloudUnsubscribe = cloudDocRef.onSnapshot(doc=>{
+    // Bỏ qua: thay đổi của chính máy này chưa lên server, bản cache khi mất mạng, hoặc đang chờ pull.
+    if(!cloudReady || doc.metadata.hasPendingWrites || doc.metadata.fromCache) return;
+    const remote = doc.exists ? doc.data() : null;
+    if(!remote || !Array.isArray(remote.data)) return;
+    if(sameData(remote.data, DATA)) return;
+    const {merged, changed} = mergeRemote(remote.data);
+    DATA = merged;
+    saveLocalOnly();
+    applyDataToUI();
+    if(changed) pushToCloud();
+    else setSyncStatus('☁ Đã cập nhật từ thiết bị khác lúc ' + new Date().toLocaleTimeString('vi-VN'), false);
+  }, err=>console.error(err));
+}
+
+/* Mỗi ngày lưu một bản chụp dữ liệu (learningApp/backup_YYYY-MM-DD), xoá bản của 15 ngày trước.
+   Dùng để cứu dữ liệu nếu lỡ bị ghi đè. */
+function localDay(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function takeDailySnapshot(){
+  if(!cloudAvailable || !cloudReady) return;
+  const today = localDay(new Date());
+  if(safeGet(BACKUP_DAY_KEY) === today) return;
+  const coll = cloudDb.collection('learningApp');
+  coll.doc('backup_' + today).set({ data: DATA, at: firebase.firestore.FieldValue.serverTimestamp() })
+    .then(()=>{
+      safeSet(BACKUP_DAY_KEY, today);
+      const old = new Date(); old.setDate(old.getDate() - 15);
+      return coll.doc('backup_' + localDay(old)).delete();
+    })
+    .catch(err=>console.error('Không lưu được bản chụp hằng ngày (kiểm tra rule Firestore):', err));
+}
+
+/* Vẽ lại giao diện sau khi DATA được thay bằng dữ liệu mới (từ cloud),
+   giữ nguyên thứ tự thẻ đang học, thẻ hiện tại và trạng thái lật. */
+function applyDataToUI(){
+  const byId = new Map(DATA.map(d=>[d.id, d]));
+  const cur = fcList[fcIndex];
+  const wasFlipped = fcFlipped;
+  fillCategorySelect(document.getElementById('fcCategory'));
+  fcList = fcList.map(it=>byId.get(it.id)).filter(Boolean);
+  if(fcList.length===0){
+    fcApplyFilters();
+  } else {
+    const idx = cur ? fcList.findIndex(it=>it.id===cur.id) : -1;
+    fcIndex = idx>=0 ? idx : Math.min(fcIndex, fcList.length-1);
+    renderFlashcard();
+    if(idx>=0 && wasFlipped) fcFlip();
+  }
+  renderStatPills();
+  refreshQuizCategoryOptions();
+  renderOverview();
 }
 
 const SAMPLE_DATA = [
@@ -613,6 +792,8 @@ const STATUS_LABEL = {new:'Chưa học', chua_nho:'Chưa nhớ', trung_binh:'Tru
 let fcList = [];
 let fcIndex = 0;
 let fcFlipped = false;
+/* Lượt học: các thẻ đã đánh dấu kể từ lần lọc/trộn gần nhất (id -> trạng thái vừa chọn) */
+let fcSession = new Map();
 
 function fcApplyFilters(){
   const search = document.getElementById('fcSearch').value.trim().toLowerCase();
@@ -631,6 +812,7 @@ function fcApplyFilters(){
   });
   fcIndex = 0;
   fcFlipped = false;
+  fcSession.clear();
   renderFlashcard();
 }
 function fcShuffle(){
@@ -639,7 +821,12 @@ function fcShuffle(){
     [fcList[i],fcList[j]]=[fcList[j],fcList[i]];
   }
   fcIndex = 0;
+  fcSession.clear();
   renderFlashcard();
+}
+function fcStudyWeak(){
+  document.getElementById('fcStatus').value = 'chua_nho';
+  fcApplyFilters();
 }
 function refreshFlashcard(){
   fillCategorySelect(document.getElementById('fcCategory'));
@@ -656,31 +843,71 @@ function renderStatPills(){
     <span class="pill nho"><b>${counts.da_nho}</b>Đã nhớ</span>
   `;
 }
+/* Hiện đúng phần của khu Flashcard: 'cards' (đang học), 'summary' (xong lượt), 'empty' (không có thẻ) */
+function setFcStageMode(mode){
+  const show = (el, on) => { el.style.display = on ? '' : 'none'; };
+  show(document.getElementById('fcStack'), mode==='cards');
+  show(document.querySelector('.swipe-hint'), mode==='cards');
+  show(document.querySelector('.flash-controls'), mode==='cards');
+  show(document.querySelector('.flash-nav'), mode==='cards');
+  show(document.getElementById('fcSessionBar'), mode!=='empty');
+  show(document.getElementById('fcSummary'), mode==='summary');
+  let msg = document.getElementById('fcEmptyMsg');
+  if(mode==='empty' && !msg){
+    msg = document.createElement('div');
+    msg.id='fcEmptyMsg'; msg.className='empty-msg';
+    msg.textContent='Không có thẻ nào khớp với bộ lọc hiện tại.';
+    document.getElementById('flashcardStage').appendChild(msg);
+  }
+  if(mode!=='empty' && msg) msg.remove();
+}
+function fcSessionCount(){ return fcList.filter(it=>fcSession.has(it.id)).length; }
+/* n thẻ chưa đánh dấu tiếp theo sau thẻ hiện tại (dùng cho chồng thẻ phía sau) */
+function fcUpcoming(n){
+  const out = [];
+  for(let k=1; k<fcList.length && out.length<n; k++){
+    const it = fcList[(fcIndex+k) % fcList.length];
+    if(!fcSession.has(it.id)) out.push(it);
+  }
+  return out;
+}
+function renderSessionSummary(){
+  const counts = {da_nho:0, trung_binh:0, chua_nho:0};
+  fcList.forEach(it=>{ const s = fcSession.get(it.id); if(s in counts) counts[s]++; });
+  document.getElementById('fcSummarySub').textContent = `Bạn vừa học xong ${fcList.length} thẻ trong lượt này.`;
+  document.getElementById('fcSummaryPills').innerHTML = `
+    <span class="pill nho"><b>${counts.da_nho}</b>Đã nhớ</span>
+    <span class="pill tb"><b>${counts.trung_binh}</b>Trung bình</span>
+    <span class="pill chua"><b>${counts.chua_nho}</b>Chưa nhớ</span>
+  `;
+  document.getElementById('fcStudyWeakBtn').style.display = counts.chua_nho ? '' : 'none';
+}
 function renderFlashcard(){
-  const stage = document.getElementById('flashcardStage');
   if(fcList.length===0){
     document.getElementById('fcProgress').textContent='';
-    document.getElementById('fcFlipWrap').style.visibility='hidden';
-    document.querySelector('.flash-controls').style.visibility='hidden';
-    document.querySelector('.flash-nav').style.visibility='hidden';
-    let msg = document.getElementById('fcEmptyMsg');
-    if(!msg){
-      msg = document.createElement('div');
-      msg.id='fcEmptyMsg'; msg.className='empty-msg';
-      msg.textContent='Không có thẻ nào khớp với bộ lọc hiện tại.';
-      stage.appendChild(msg);
-    }
+    setFcStageMode('empty');
     return;
   }
-  const msg = document.getElementById('fcEmptyMsg');
-  if(msg) msg.remove();
-  document.getElementById('fcFlipWrap').style.visibility='visible';
-  document.querySelector('.flash-controls').style.visibility='visible';
-  document.querySelector('.flash-nav').style.visibility='visible';
+  const done = fcSessionCount();
+  document.getElementById('fcSessionFill').style.width = (done / fcList.length * 100) + '%';
+  if(done >= fcList.length){
+    document.getElementById('fcProgress').textContent = `Lượt này: ${done}/${fcList.length} thẻ`;
+    setFcStageMode('summary');
+    renderSessionSummary();
+    return;
+  }
+  setFcStageMode('cards');
 
   const item = fcList[fcIndex];
-  document.getElementById('fcProgress').textContent = `Đang học: ${item.category||'Chưa phân loại'}`;
+  document.getElementById('fcProgress').textContent = `Đang học: ${item.category||'Chưa phân loại'} · Lượt này: ${done}/${fcList.length} thẻ`;
   document.getElementById('fcCounter').textContent = `${fcIndex+1} / ${fcList.length}`;
+  const [next1, next2] = fcUpcoming(2);
+  [['fcGhost1', next1], ['fcGhost2', next2]].forEach(([id, it])=>{
+    const el = document.getElementById(id);
+    el.parentElement.style.display = it ? '' : 'none';
+    el.textContent = it ? it.term : '';
+    el.style.fontSize = it && it.term.length > 28 ? '22px' : '';
+  });
   document.getElementById('fcTypeTagFront').textContent = item.type==='vocab' ? 'TỪ VỰNG' : 'NGỮ PHÁP';
   document.getElementById('fcTypeTagBack').textContent = item.type==='vocab' ? 'TỪ VỰNG' : 'NGỮ PHÁP';
   document.getElementById('fcTermFront').textContent = item.term;
@@ -688,6 +915,11 @@ function renderFlashcard(){
   document.getElementById('fcSpeakBtn').style.display = item.type==='vocab' ? 'inline-block':'none';
   document.getElementById('fcMeaningBack').textContent = item.meaning;
   document.getElementById('fcExampleBack').textContent = item.example || '';
+  // Nội dung dài (thường là ngữ pháp) -> giảm cỡ chữ để vừa thẻ
+  const backLen = (item.meaning||'').length + (item.example||'').length;
+  document.querySelector('.face.front').classList.toggle('long', (item.term||'').length > 28);
+  document.querySelector('.face.back').classList.toggle('long', backLen > 120);
+  document.querySelector('.face.back').classList.toggle('very-long', backLen > 250);
   const statusText = STATUS_LABEL[item.status] || 'Chưa học';
   const badgeFront = document.getElementById('fcStatusBadgeFront');
   const badgeBack = document.getElementById('fcStatusBadgeBack');
@@ -753,12 +985,160 @@ function fcNav(dir){
 }
 function fcMark(status){
   if(fcList.length===0) return;
-  const item = fcList[fcIndex];
+  const item = DATA.find(d=>d.id===fcList[fcIndex].id);
+  if(!item) return;
   item.status = status;
   item.lastReviewed = new Date().toISOString();
   saveData();
   renderStatPills();
-  fcNav(1);
+  fcSession.set(item.id, status);
+  if(fcSessionCount() >= fcList.length){
+    renderFlashcard();   // hiện bảng tổng kết lượt học
+    launchConfetti();
+    return;
+  }
+  // Sang thẻ tiếp theo chưa đánh dấu trong lượt này
+  for(let k=1; k<=fcList.length; k++){
+    const j = (fcIndex+k) % fcList.length;
+    if(!fcSession.has(fcList[j].id)){ fcIndex = j; break; }
+  }
+  renderFlashcard();
+}
+
+/* ============================================================
+   VUỐT THẺ (kiểu Tinder): phải = Đã nhớ, trái = Chưa nhớ, lên = Trung bình.
+   Chạm nhẹ (di chuyển dưới 8px) = lật thẻ. 3 nút bấm bên dưới dùng chung hiệu ứng bay.
+============================================================ */
+const SWIPE_X = 100, SWIPE_UP = 90, TAP_MAX = 8;
+const SWIPE_STATUS = {right:'da_nho', left:'chua_nho', up:'trung_binh'};
+let fcDrag = null;
+let fcFlying = false;
+
+function reducedMotion(){
+  try{ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; }
+}
+function haptic(ms){
+  try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} // iPhone không hỗ trợ -> bỏ qua
+}
+/* Hướng vuốt đủ ngưỡng (hoặc vuốt nhanh), null nếu chưa đủ */
+function swipeDirection(dx, dy, fast){
+  if(-dy > SWIPE_UP && -dy > Math.abs(dx)) return 'up';
+  if(dx > SWIPE_X || (fast && dx > 40)) return 'right';
+  if(dx < -SWIPE_X || (fast && dx < -40)) return 'left';
+  return null;
+}
+function setStamps(dx, dy){
+  const wrap = document.getElementById('fcFlipWrap');
+  const up = -dy > Math.abs(dx);
+  wrap.querySelector('.stamp-right').style.opacity = up ? 0 : Math.max(0, Math.min(1, dx / SWIPE_X));
+  wrap.querySelector('.stamp-left').style.opacity = up ? 0 : Math.max(0, Math.min(1, -dx / SWIPE_X));
+  wrap.querySelector('.stamp-up').style.opacity = up ? Math.max(0, Math.min(1, -dy / SWIPE_UP)) : 0;
+}
+function setCardTransform(dx, dy, animate){
+  const wrap = document.getElementById('fcFlipWrap');
+  wrap.style.transition = animate ? 'transform .25s ease-out' : 'none';
+  wrap.style.transform = (dx || dy) ? `translate(${dx}px, ${dy}px) rotate(${dx/18}deg)` : '';
+  setStamps(dx, dy);
+}
+function onCardPointerDown(e){
+  if(fcFlying || fcList.length===0) return;
+  if(e.target.closest && e.target.closest('.speak-btn')) return;
+  if(e.pointerType==='mouse' && e.button!==0) return;
+  fcDrag = {id:e.pointerId, x0:e.clientX, y0:e.clientY, dx:0, dy:0, t0:Date.now(), armed:false};
+  try{ e.currentTarget.setPointerCapture(e.pointerId); }catch(err){}
+}
+function onCardPointerMove(e){
+  if(!fcDrag || e.pointerId!==fcDrag.id) return;
+  fcDrag.dx = e.clientX - fcDrag.x0;
+  const rawDy = e.clientY - fcDrag.y0;
+  fcDrag.dy = rawDy > 0 ? rawDy * 0.3 : rawDy;   // kéo xuống không có ý nghĩa -> hãm lại
+  const armed = !!swipeDirection(fcDrag.dx, fcDrag.dy, false);
+  if(armed && !fcDrag.armed) haptic(10);          // rung nhẹ khi vượt ngưỡng
+  fcDrag.armed = armed;
+  setCardTransform(fcDrag.dx, fcDrag.dy, false);
+}
+function onCardPointerUp(e){
+  if(!fcDrag || e.pointerId!==fcDrag.id) return;
+  const {dx, dy, t0} = fcDrag;
+  fcDrag = null;
+  const dist = Math.hypot(dx, dy);
+  if(dist < TAP_MAX){ setCardTransform(0, 0, false); fcFlip(); return; }
+  const fast = dist / Math.max(1, Date.now() - t0) > 0.6;   // > 0.6 px/ms
+  const dir = swipeDirection(dx, dy, fast);
+  if(dir) flyOut(dir);
+  else setCardTransform(0, 0, true);                         // chưa đủ ngưỡng -> bật về
+}
+function onCardPointerCancel(){
+  if(!fcDrag) return;
+  fcDrag = null;
+  setCardTransform(0, 0, true);
+}
+/* Thẻ bay ra theo hướng vuốt, thẻ phía sau trồi lên, rồi mới lưu trạng thái */
+function flyOut(dir){
+  if(fcFlying || fcList.length===0) return;
+  const status = SWIPE_STATUS[dir];
+  haptic(20);
+  if(reducedMotion()){ fcMark(status); return; }
+  fcFlying = true;
+  const wrap = document.getElementById('fcFlipWrap');
+  const stack = document.getElementById('fcStack');
+  const tx = dir==='right' ? window.innerWidth : dir==='left' ? -window.innerWidth : 0;
+  const ty = dir==='up' ? -window.innerHeight : 0;
+  setStamps(dir==='right' ? SWIPE_X : dir==='left' ? -SWIPE_X : 0, dir==='up' ? -SWIPE_UP : 0);
+  wrap.style.transition = 'transform .25s ease-in, opacity .25s ease-in';
+  wrap.style.transform = `translate(${tx}px, ${ty}px) rotate(${dir==='up' ? 0 : tx/30}deg)`;
+  wrap.style.opacity = '0';
+  stack.classList.add('promote');
+  setTimeout(()=>{
+    stack.classList.add('no-anim');      // tắt hiệu ứng trong lúc thay nội dung thẻ
+    fcMark(status);
+    wrap.style.transition = '';
+    wrap.style.transform = '';
+    wrap.style.opacity = '';
+    setStamps(0, 0);
+    stack.classList.remove('promote');
+    void stack.offsetWidth;              // ép trình duyệt áp dụng ngay trước khi bật lại hiệu ứng
+    stack.classList.remove('no-anim');
+    fcFlying = false;
+  }, 250);
+}
+(function initSwipe(){
+  const wrap = document.getElementById('fcFlipWrap');
+  wrap.addEventListener('pointerdown', onCardPointerDown);
+  wrap.addEventListener('pointermove', onCardPointerMove);
+  wrap.addEventListener('pointerup', onCardPointerUp);
+  wrap.addEventListener('pointercancel', onCardPointerCancel);
+})();
+
+/* Pháo giấy khi xong một lượt học (vẽ bằng canvas, tự tắt sau 2,5 giây) */
+function launchConfetti(){
+  if(reducedMotion()) return;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext && canvas.getContext('2d');
+  if(!ctx) return;
+  canvas.className = 'confetti-canvas';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const colors = ['#224099','#FA9614','#2e9e5b','#e5484d','#e0a800','#3255c4'];
+  const parts = Array.from({length:150}, ()=>({
+    x: canvas.width/2 + (Math.random()-.5)*160, y: canvas.height*0.35,
+    vx: (Math.random()-.5)*16, vy: -Math.random()*13 - 4,
+    size: 5 + Math.random()*6, color: colors[Math.floor(Math.random()*colors.length)],
+    rot: Math.random()*6, vrot: (Math.random()-.5)*0.3,
+  }));
+  const start = performance.now();
+  (function frame(now){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    parts.forEach(p=>{
+      p.vy += 0.35; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.rot += p.vrot;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.size/2, -p.size/3, p.size, p.size*0.6);
+      ctx.restore();
+    });
+    if(now - start < 2500) requestAnimationFrame(frame);
+    else canvas.remove();
+  })(start);
 }
 
 /* ============================================================
@@ -800,13 +1180,24 @@ function makeQuestion(item, mode){
     else qType = Math.random() < 0.5 ? 'vocab_choice' : 'vocab_fill';
   }
   if(qType==='vocab_choice'){
-    const wrongPool = DATA.filter(d=>d.type==='vocab' && d.id!==item.id);
-    const distractors = shuffleArr(wrongPool).slice(0,3).map(d=>d.meaning);
+    // Phương án nhiễu: ưu tiên cùng chủ đề, không trùng nghĩa với đáp án và không trùng nhau
+    const norm = s => (s||'').trim().toLowerCase();
+    const candidates = DATA.filter(d=>d.type==='vocab' && d.id!==item.id && d.meaning);
+    const ordered = [...shuffleArr(candidates.filter(d=>d.category===item.category)),
+                     ...shuffleArr(candidates.filter(d=>d.category!==item.category))];
+    const seen = new Set([norm(item.meaning)]);
+    const distractors = [];
+    for(const d of ordered){
+      if(distractors.length>=3) break;
+      if(seen.has(norm(d.meaning))) continue;
+      seen.add(norm(d.meaning));
+      distractors.push(d.meaning);
+    }
     const options = shuffleArr([item.meaning, ...distractors]);
     return {qType:'choice', item, question:`"${item.term}" ${item.phonetic||''} nghĩa là gì?`, options, answer:item.meaning};
   }
   if(qType==='vocab_fill'){
-    return {qType:'text', item, question:`Điền từ tiếng Anh phù hợp với nghĩa: "${item.meaning}"`, sub: item.example ? `Gợi ý câu ví dụ: ${item.example.replace(new RegExp(item.term,'i'),'_____')}` : '', answer:item.term};
+    return {qType:'text', item, question:`Điền từ tiếng Anh phù hợp với nghĩa: "${item.meaning}"`, sub: item.example ? `Gợi ý câu ví dụ: ${item.example.replace(new RegExp(escapeRegExp(item.term),'i'),'_____')}` : '', answer:item.term};
   }
   if(qType==='grammar_fill'){
     return {qType:'text', item, question:`Điền vào chỗ trống (${item.term}):`, sub:item.example, answer:item.blank};
@@ -860,6 +1251,11 @@ function renderQuizQuestion(){
     input.type='text';
     input.className='fill-input';
     input.placeholder='Nhập câu trả lời...';
+    // Tắt tự sửa chính tả / tự viết hoa của bàn phím iPhone
+    input.setAttribute('autocapitalize','off');
+    input.setAttribute('autocorrect','off');
+    input.setAttribute('autocomplete','off');
+    input.spellcheck = false;
     input.onkeydown = (e)=>{ if(e.key==='Enter') answerText(input.value, q); };
     area.appendChild(input);
     const btn = document.createElement('button');
@@ -871,8 +1267,19 @@ function renderQuizQuestion(){
     setTimeout(()=>input.focus(), 50);
   }
 }
-function updateItemStats(item, isCorrect){
-  if(isCorrect) item.correct = (item.correct||0)+1; else item.wrong = (item.wrong||0)+1;
+/* Chạy lại một hiệu ứng CSS (anim-shake / anim-pop) trên phần tử */
+function playAnim(el, cls){
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+  el.addEventListener('animationend', ()=>el.classList.remove(cls), {once:true});
+}
+function updateItemStats(qItem, isCorrect){
+  // Tìm lại theo id: DATA có thể đã được thay bằng bản mới từ cloud trong lúc làm quiz.
+  const item = DATA.find(d=>d.id===qItem.id);
+  if(!item) return;
+  if(isCorrect) item.correct = (item.correct||0)+1;
+  else { item.wrong = (item.wrong||0)+1; item.status = 'chua_nho'; } // trả lời sai -> đưa về "Chưa nhớ" để ôn lại
   item.lastReviewed = new Date().toISOString();
   saveData();
 }
@@ -882,17 +1289,21 @@ function answerChoice(btnEl, chosen, q){
   const isCorrect = chosen === q.answer;
   document.querySelectorAll('.opt-btn').forEach(b=>{
     b.disabled = true;
-    if(b.textContent === q.answer) b.classList.add('correct');
-    else if(b===btnEl) b.classList.add('wrong');
+    if(b.textContent === q.answer){ b.classList.add('correct'); playAnim(b, 'anim-pop'); }
+    else if(b===btnEl){ b.classList.add('wrong'); playAnim(b, 'anim-shake'); }
   });
   finishAnswer(isCorrect, q, chosen);
 }
 function answerText(value, q){
   if(quizAnswered) return;
   quizAnswered = true;
-  const norm = s => (s||'').trim().toLowerCase();
-  const isCorrect = norm(value) === norm(q.answer);
+  const isCorrect = String(q.answer||'').split('/').map(normAnswer).filter(Boolean).includes(normAnswer(value));
   const area = document.getElementById('quizAnswerArea');
+  const input = area.querySelector('.fill-input');
+  if(input){
+    input.classList.add(isCorrect ? 'correct' : 'wrong');
+    playAnim(input, isCorrect ? 'anim-pop' : 'anim-shake');
+  }
   const feedback = document.createElement('div');
   feedback.style.marginTop='10px';
   feedback.style.fontWeight='600';
@@ -926,8 +1337,8 @@ function showQuizResult(){
   const reviewEl = document.getElementById('quizReview');
   reviewEl.innerHTML = '<h4>Xem lại</h4>' + quizReviewLog.map(r=>`
     <div class="result-item ${r.isCorrect?'ok':'no'}">
-      <div>${r.question}</div>
-      ${!r.isCorrect ? `<div>Bạn trả lời: <b>${r.userAnswer||'(bỏ trống)'}</b> — Đáp án đúng: <b>${r.answer}</b></div>` : `<div>Bạn trả lời đúng: <b>${r.answer}</b></div>`}
+      <div>${escapeHtml(r.question)}</div>
+      ${!r.isCorrect ? `<div>Bạn trả lời: <b>${escapeHtml(r.userAnswer||'(bỏ trống)')}</b> — Đáp án đúng: <b>${escapeHtml(r.answer)}</b></div>` : `<div>Bạn trả lời đúng: <b>${escapeHtml(r.answer)}</b></div>`}
     </div>
   `).join('');
 }
@@ -995,6 +1406,17 @@ function renderOverview(){
 }
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function escapeRegExp(str){
+  return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+/* Chuẩn hoá câu trả lời: chữ thường, dấu nháy cong (bàn phím iPhone) -> nháy thẳng,
+   gộp khoảng trắng, bỏ dấu chấm câu ở cuối */
+function normAnswer(s){
+  return String(s||'').toLowerCase()
+    .replace(/[’‘`´]/g, "'").replace(/[“”]/g, '"')
+    .replace(/\s+/g, ' ').trim()
+    .replace(/[.!?]+$/, '');
 }
 function changeStatus(id, status){
   const item = DATA.find(d=>d.id===id);
@@ -1128,14 +1550,15 @@ function importExcel(evt){
 
         // Nếu đã có mục cùng loại + cùng tên (không phân biệt hoa/thường) -> cập nhật thay vì thêm trùng.
         // Giữ nguyên tiến trình học (trạng thái, số lần đúng/sai) của mục cũ.
+        // Chỉ ghi đè ô nào trong Excel có giá trị — ô trống (hoặc thiếu cột) giữ nguyên dữ liệu cũ.
         const existing = DATA.find(d => d.type===type && d.term.trim().toLowerCase() === term.toLowerCase());
         if(existing){
           existing.term = term;
-          existing.phonetic = phonetic;
-          existing.meaning = meaning;
-          existing.example = example;
-          existing.blank = blank;
-          existing.category = category;
+          if(phonetic) existing.phonetic = phonetic;
+          if(meaning) existing.meaning = meaning;
+          if(example) existing.example = example;
+          if(blank) existing.blank = blank;
+          if(category) existing.category = category;
           updated++;
         } else {
           DATA.push({
@@ -1174,8 +1597,9 @@ function exportExcel(){
 }
 function downloadTemplate(){
   const rows = [
-    {'Từ':'realize','Phiên âm':'/ˈriː.ə.laɪz/','Nghĩa':'nhận ra, nhận thức được','Ví dụ':"I didn't realize you were here.",'Loại':'Từ vựng','Chủ đề':'Giao tiếp cơ bản'},
-    {'Từ':'','Phiên âm':'','Nghĩa':'','Ví dụ':'','Loại':'','Chủ đề':''},
+    {'Từ':'realize','Phiên âm':'/ˈriː.ə.laɪz/','Nghĩa':'nhận ra, nhận thức được','Ví dụ':"I didn't realize you were here.",'Từ cần điền':'','Loại':'Từ vựng','Chủ đề':'Giao tiếp cơ bản'},
+    {'Từ':'Past Simple (thì quá khứ đơn)','Phiên âm':'','Nghĩa':'Diễn tả hành động đã xảy ra và kết thúc trong quá khứ. Công thức: S + V-ed / V2','Ví dụ':'The machine ___ down yesterday.','Từ cần điền':'broke','Loại':'Ngữ pháp','Chủ đề':'Ngữ pháp cơ bản'},
+    {'Từ':'','Phiên âm':'','Nghĩa':'','Ví dụ':'','Từ cần điền':'','Loại':'','Chủ đề':''},
   ];
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
@@ -1274,14 +1698,32 @@ function openRestoreModal(){
 function closeRestoreModal(){
   document.getElementById('restoreModalOverlay').classList.remove('show');
 }
+/* Trả về true nếu đã khôi phục, false nếu người dùng huỷ.
+   Ném lỗi 'invalid' (dữ liệu sai định dạng) hoặc 'offline' (chưa đọc được cloud — nếu ghi lúc này,
+   bản khôi phục sẽ bị dữ liệu cloud đè lại khi có mạng). */
 function applyRestoredData(parsed){
-  if(!Array.isArray(parsed)) throw new Error('invalid');
-  DATA = parsed;
+  const valid = Array.isArray(parsed) && parsed.length>0 && parsed.every(it =>
+    it && typeof it.term==='string' && it.term.trim() && (it.type==='vocab' || it.type==='grammar'));
+  if(!valid) throw new Error('invalid');
+  if(cloudAvailable && !cloudReady) throw new Error('offline');
+  if(!confirm(`Khôi phục sẽ THAY THẾ toàn bộ ${DATA.length} mục hiện có bằng ${parsed.length} mục trong bản sao lưu, trên mọi thiết bị. Tiếp tục?`)) return false;
+  DATA = parsed.map(it => ({status:'new', correct:0, wrong:0, lastReviewed:null, ...it, id: it.id || uid()}));
   saveData();
   refreshFlashcard();
   refreshQuizCategoryOptions();
   renderOverview();
   renderStatPills();
+  return true;
+}
+function restoreErrorMessage(err, fallback){
+  return (err && err.message==='offline')
+    ? '✘ Chưa kết nối được cloud. Hãy bấm "🔄 Đồng bộ" khi có mạng rồi khôi phục lại, để bản khôi phục không bị dữ liệu cloud ghi đè.'
+    : fallback;
+}
+function handleRestore(parsed){
+  if(!applyRestoredData(parsed)){ setRestoreStatus('Đã huỷ khôi phục.', true); return; }
+  setRestoreStatus(`✔ Khôi phục thành công — ${parsed.length} mục đã được nạp lại.`, false);
+  setTimeout(closeRestoreModal, 900);
 }
 /* Khôi phục bằng cách dán trực tiếp văn bản JSON — dùng khi trình xem
    (VD: OneDrive preview) không hỗ trợ chọn file. */
@@ -1289,12 +1731,9 @@ function restoreFromText(){
   const text = document.getElementById('restoreTextarea').value.trim();
   if(!text){ setRestoreStatus('✘ Vui lòng dán nội dung sao lưu vào ô văn bản trước.', true); return; }
   try{
-    const parsed = JSON.parse(text);
-    applyRestoredData(parsed);
-    setRestoreStatus(`✔ Khôi phục thành công — ${parsed.length} mục đã được nạp lại.`, false);
-    setTimeout(closeRestoreModal, 900);
+    handleRestore(JSON.parse(text));
   }catch(err){
-    setRestoreStatus('✘ Nội dung dán vào không hợp lệ. Hãy dán đúng toàn bộ văn bản đã sao lưu trước đó.', true);
+    setRestoreStatus(restoreErrorMessage(err, '✘ Nội dung dán vào không hợp lệ. Hãy dán đúng toàn bộ văn bản đã sao lưu trước đó.'), true);
   }
 }
 function importBackupFile(evt){
@@ -1303,12 +1742,9 @@ function importBackupFile(evt){
   const reader = new FileReader();
   reader.onload = function(e){
     try{
-      const parsed = JSON.parse(e.target.result);
-      applyRestoredData(parsed);
-      setRestoreStatus(`✔ Khôi phục thành công — ${parsed.length} mục đã được nạp lại.`, false);
-      setTimeout(closeRestoreModal, 900);
+      handleRestore(JSON.parse(e.target.result));
     }catch(err){
-      setRestoreStatus('✘ File sao lưu không hợp lệ.', true);
+      setRestoreStatus(restoreErrorMessage(err, '✘ File sao lưu không hợp lệ.'), true);
     }
     evt.target.value='';
   };
@@ -1316,15 +1752,57 @@ function importBackupFile(evt){
 }
 
 /* ============================================================
+   MÃ PIN — chỉ che giao diện, KHÔNG bảo vệ dữ liệu trên Firestore.
+   Mã lưu dạng băm (không lưu PIN gốc). Máy nhớ sau lần nhập đúng đầu tiên.
+   Đổi PIN: thay PIN_HASH bằng pinHash('<PIN mới>') — mọi máy sẽ phải nhập lại.
+============================================================ */
+const PIN_HASH = '7e261904';
+const PIN_OK_KEY = 'tkmb_pin_ok_v1';
+function pinHash(pin){
+  // FNV-1a 32-bit, viết thuần JS để chạy được cả khi mở file trực tiếp (file://)
+  let h = 0x811c9dc5;
+  const s = 'tkmb-flashcard:' + pin;
+  for(let i=0; i<s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16).padStart(8, '0');
+}
+function unlockApp(){
+  const gate = document.getElementById('pinGate');
+  if(gate) gate.remove();
+  startApp();
+}
+function submitPin(){
+  const input = document.getElementById('pinInput');
+  if(pinHash(input.value.trim()) === PIN_HASH){
+    safeSet(PIN_OK_KEY, PIN_HASH);
+    unlockApp();
+  } else {
+    input.value = '';
+    playAnim(input, 'anim-shake');
+    haptic(60);
+    document.getElementById('pinMsg').textContent = 'Mã PIN chưa đúng, thử lại nhé.';
+    input.focus();
+  }
+}
+
+/* ============================================================
    INIT
 ============================================================ */
 window.addEventListener('DOMContentLoaded', ()=>{
+  if(safeGet(PIN_OK_KEY) === PIN_HASH) unlockApp();
+  else setTimeout(()=>{ const i = document.getElementById('pinInput'); if(i) i.focus(); }, 50);
+});
+function startApp(){
   try{
     loadData();
     refreshFlashcard();
     refreshQuizCategoryOptions();
     renderOverview();
     pullFromCloud();
+    // Mở lại tab sau một thời gian (VD: Safari trên iPhone chạy nền): tải lại dữ liệu mới nhất
+    // trước khi cho phép đẩy lên cloud, để tab cũ không đè mất tiến độ học trên máy khác.
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.visibilityState === 'visible') pullFromCloud();
+    });
   }catch(err){
     console.error(err);
     document.body.innerHTML = '<div style="padding:30px;font-family:sans-serif;color:#a11d22;">'
@@ -1334,7 +1812,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
       + '<p style="font-size:12px;color:#666;">Chi tiết lỗi: ' + (err && err.message ? err.message : err) + '</p>'
       + '</div>';
   }
-});
+}
 </script>
 </body>
 </html>
