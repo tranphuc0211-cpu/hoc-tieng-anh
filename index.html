@@ -1665,12 +1665,13 @@ function splitSpeech(text){
 
 let speakRun = 0;          // tăng mỗi lần bắt đầu/dừng; các hàm gọi lại của lượt đọc cũ thấy số khác sẽ tự bỏ
 let speakTimer = null;
+let speakGuard = null;       // đồng hồ chống treo: iPhone đôi khi không báo "đọc xong"
 let speakShadowOn = false;
 /* Hiện trạng thái trên thẻ: null = không đọc, 'listen' = đang nghe máy đọc, 'you' = đến lượt người học,
    'mic' = đang ghi âm người học */
 function setSpeakUI(mode){
   speakShadowOn = !!mode;
-  const msg = {listen:'Nghe...', you:'Đến lượt bạn đọc...', mic:'Đang ghi âm giọng bạn...', micwait:'Đang chờ bạn cho phép micro...'}[mode] || '';
+  const msg = {listen:'Nghe...', you:'Đến lượt bạn đọc...', mic:'Đang ghi âm giọng bạn...', micwait:'Đang mở micro...'}[mode] || '';
   document.querySelectorAll('.speak-status').forEach(el=>{ el.textContent = msg; });
   document.querySelectorAll('.shadow-btn').forEach(b=>{
     b.classList.toggle('on', speakShadowOn);
@@ -1680,6 +1681,7 @@ function setSpeakUI(mode){
 function stopSpeaking(){
   speakRun++;
   clearTimeout(speakTimer);
+  clearTimeout(speakGuard);
   stopRecording();
   closeMic();
   stopMyPlayback();
@@ -1689,7 +1691,8 @@ function stopSpeaking(){
 
 /* ---- Ghi âm giọng người học để nghe lại (MediaRecorder; bản ghi chỉ nằm trong bộ nhớ, không gửi đi) ---- */
 function micSupported(){ return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder); }
-let speakMic = null;       // {stream, ctx, analyser} giữ mở suốt một lượt "đọc theo"
+let speakMic = null;       // {stream, ctx, analyser}: chỉ tồn tại trong lúc người học đọc (micro KHÔNG mở khi máy đang đọc)
+let speakCtx = null;       // AudioContext tạo ngay lúc chạm nút, giữ đến hết lượt "đọc theo"
 let speakRecording = null; // lượt ghi âm đang chạy: {cancel()}
 /* Tạo bộ nghe mức âm NGAY trong lúc người dùng chạm nút: Safari trên iPhone chỉ cho nó chạy nếu được tạo trong cú chạm,
    còn chờ xin micro xong mới tạo thì nó bị treo ở trạng thái "tạm dừng" và luôn báo mức âm 0. */
@@ -1702,30 +1705,34 @@ function makeMicContext(){
     return ctx;
   }catch(e){ return null; }
 }
-async function openMic(ctx){
+/* Mở micro cho MỘT lượt của người học. Phải tắt (releaseMic) trước khi máy đọc tiếp: trên iPhone, micro đang mở
+   làm giọng đọc bị cắt giữa chừng và không bao giờ báo "đọc xong". */
+async function acquireMic(){
   try{
     const stream = await navigator.mediaDevices.getUserMedia({audio:true});
     let analyser = null;
-    if(ctx){
+    if(speakCtx){
       try{
-        if(ctx.resume) await Promise.race([ctx.resume(), new Promise(r=>setTimeout(r, 800))]);
-        analyser = ctx.createAnalyser();
+        if(speakCtx.resume) await Promise.race([speakCtx.resume(), new Promise(r=>setTimeout(r, 800))]);
+        analyser = speakCtx.createAnalyser();
         analyser.fftSize = 1024;
-        ctx.createMediaStreamSource(stream).connect(analyser);
+        speakCtx.createMediaStreamSource(stream).connect(analyser);
       }catch(e){ analyser = null; }
     }
-    speakMic = {stream, ctx, analyser};
+    speakMic = {stream, ctx: speakCtx, analyser};
     return {ok:true};
   }catch(e){
-    try{ if(ctx) ctx.close(); }catch(err){}
     return {ok:false, why: e && e.name};
   }
 }
-function closeMic(){
+function releaseMic(){
   if(!speakMic) return;
   const m = speakMic; speakMic = null;
   try{ m.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
-  try{ m.ctx.close(); }catch(e){}
+}
+function closeMic(){
+  releaseMic();
+  if(speakCtx){ try{ speakCtx.close(); }catch(e){} speakCtx = null; }
 }
 function stopRecording(){
   if(speakRecording){ const r = speakRecording; speakRecording = null; r.cancel(); }
@@ -1804,7 +1811,8 @@ function playMine(){
   step();
 }
 
-/* opts.shadow = true: "đọc theo" — đọc từng đoạn rồi chờ người học đọc lại (có micro thì ghi âm để nghe lại) */
+/* opts.shadow = true: "đọc theo" — đọc từng đoạn rồi chờ người học đọc lại (có micro thì ghi âm để nghe lại).
+   Thứ tự mỗi đoạn: máy đọc (micro tắt) → mở micro → người học đọc → tắt micro → đoạn kế tiếp. */
 function speakText(text, opts){
   if(!text) return;
   if(!('speechSynthesis' in window)){ alert('Trình duyệt này không hỗ trợ phát âm.'); return; }
@@ -1815,8 +1823,9 @@ function speakText(text, opts){
   if(shadow){ clearTakes(); lastShadowText = text; }
   const run = speakRun;
   const chunks = splitSpeech(text);
-  let micState = 'off';        // off | pending | ok | failed
-  let micPromise = null;
+  const wantMic = shadow && speakRecordOn && micSupported();
+  let micState = wantMic ? 'untried' : 'off';      // off | untried | ok | failed
+  if(wantMic) speakCtx = makeMicContext();         // tạo ngay trong cú chạm (xem makeMicContext)
   let i = 0;
   const finishRun = ()=>{
     closeMic();
@@ -1825,6 +1834,7 @@ function speakText(text, opts){
     if(myTakes.length) renderTakes();
     else if(micState === 'ok') showTakes('<span class="take-note">Chưa ghi được giọng bạn. Hãy thử nói to hơn.</span>');
   };
+  const later = (ms, fn)=>{ speakTimer = setTimeout(()=>{ if(run === speakRun) fn(); }, ms); };
   const next = ()=>{
     if(run !== speakRun) return;
     if(i >= chunks.length){ finishRun(); return; }
@@ -1835,36 +1845,40 @@ function speakText(text, opts){
     u.rate = rate;
     u.pitch = 1;
     let done = false;
-    u.onend = u.onerror = ()=>{
+    const ended = ()=>{
       if(done || run !== speakRun) return;
       done = true;
-      if(!shadow){ speakTimer = setTimeout(()=>{ if(run === speakRun) next(); }, c.gap / rate); return; }
+      clearTimeout(speakGuard);
+      if(!shadow){ later(c.gap / rate, next); return; }
       // Đọc theo: chờ người học nhại lại; thời gian chờ = thời gian đọc của đoạn đó (tối thiểu 1,2 giây)
       const wait = Math.max(1200, c.t.length * 75 / rate + 500);
-      const turn = ()=>{
-        if(run !== speakRun) return;
-        if(micState !== 'ok'){ setSpeakUI('you'); speakTimer = setTimeout(()=>{ if(run === speakRun) next(); }, wait); return; }
+      if(micState === 'failed' || micState === 'off'){ setSpeakUI('you'); later(wait, next); return; }
+      setSpeakUI('micwait');
+      acquireMic().then(r=>{
+        if(run !== speakRun){ releaseMic(); return; }
+        if(!r.ok){
+          micState = 'failed';
+          showTakes(`<span class="take-note">${r.why === 'NotAllowedError' ? 'Chưa cho phép micro. Hãy bật micro cho trang này để ghi âm giọng bạn.' : 'Không dùng được micro.'}</span>`);
+          setSpeakUI('you'); later(wait, next);
+          return;
+        }
+        micState = 'ok';
         setSpeakUI('mic');
         recordTurn(wait + 1200, wait + 4000, blob=>{
+          releaseMic();                                   // tắt micro trước khi máy đọc đoạn kế tiếp
           if(run !== speakRun) return;
           if(blob) myTakes.push({url: URL.createObjectURL(blob)});
-          speakTimer = setTimeout(()=>{ if(run === speakRun) next(); }, 300);
+          setSpeakUI('you');
+          later(500, next);
         });
-      };
-      if(micState === 'pending'){ setSpeakUI('micwait'); micPromise.then(turn); } else turn();
+      });
     };
+    u.onend = u.onerror = ended;
+    // Chống treo: nếu sau thời gian đọc dự kiến + 3 giây vẫn chưa nhận được "đọc xong" thì coi như xong và đi tiếp
+    speakGuard = setTimeout(()=>{ if(!done && run === speakRun){ try{ speechSynthesis.cancel(); }catch(e){} ended(); } }, c.t.length * 100 / rate + 3000);
     if(shadow) setSpeakUI('listen');
     speechSynthesis.speak(u);
   };
-  if(shadow && speakRecordOn && micSupported()){
-    // Bộ nghe mức âm tạo ngay lúc chạm; xin micro song song với việc đọc (không chờ hộp xin quyền)
-    micState = 'pending';
-    micPromise = openMic(makeMicContext()).then(r=>{
-      if(run !== speakRun){ closeMic(); return; }
-      micState = r.ok ? 'ok' : 'failed';
-      if(!r.ok) showTakes(`<span class="take-note">${r.why === 'NotAllowedError' ? 'Chưa cho phép micro. Hãy bật micro cho trang này để ghi âm giọng bạn.' : 'Không dùng được micro.'}</span>`);
-    });
-  }
   next();
 }
 function fcSpeak(){
