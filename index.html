@@ -842,6 +842,7 @@ const firebaseConfig = {
 };
 let cloudDb = null;
 let cloudDocRef = null;
+let progressRef = null;      // learningApp/hoangphuc_progress: nhật ký học, mục tiêu, cột mốc (tách khỏi dữ liệu từ vựng)
 let cloudAvailable = false;
 /* cloudReady: chỉ bật sau khi đã đọc được dữ liệu mới nhất từ cloud (server, không phải cache).
    Trước đó mọi thay đổi chỉ lưu trên máy (pendingPush) — tránh đè dữ liệu thật trên cloud
@@ -858,6 +859,7 @@ try{
   cloudDb = firebase.firestore();
   cloudDb.enablePersistence({synchronizeTabs:true}).catch(()=>{ /* nhiều tab đang mở hoặc trình duyệt không hỗ trợ offline cache — bỏ qua */ });
   cloudDocRef = cloudDb.collection('learningApp').doc('hoangphuc_data');
+  progressRef = cloudDb.collection('learningApp').doc('hoangphuc_progress');
   cloudAvailable = true;
 }catch(e){
   console.error('Firebase init failed, chỉ dùng dữ liệu trên máy:', e);
@@ -938,6 +940,7 @@ function pullFromCloud(){
     }
     startCloudListener();
     takeDailySnapshot();
+    pullProgress();
   }).catch(err=>{
     console.error(err);
     setSyncStatus('⚠ Mất mạng — đang dùng dữ liệu trên máy này', true);
@@ -1174,27 +1177,35 @@ function saveStudyLog(){
   while(keys.length > 400) delete studyLog[keys.shift()];
   safeSet(STUDY_LOG_KEY, JSON.stringify(studyLog));
 }
-function todayLog(){ return studyLog[localDay(new Date())] || {c:0, q:0, qok:0}; }
+/* Tổng một ngày = phần của máy này (studyLog) + phần của các máy khác lấy từ cloud (otherLog) */
+let otherLog = {};
+function logDay(k){
+  const a = studyLog[k], b = otherLog[k];
+  if(!a && !b) return null;
+  return {c: (a ? a.c : 0) + (b ? b.c : 0), q: (a ? a.q : 0) + (b ? b.q : 0), qok: (a ? a.qok : 0) + (b ? b.qok : 0)};
+}
+function todayLog(){ return logDay(localDay(new Date())) || {c:0, q:0, qok:0}; }
 /* kind 'card' = đánh dấu một thẻ; 'quiz' = trả lời một câu (ok = đúng/sai) */
 function logActivity(kind, ok){
   const e = studyLog[localDay(new Date())] || (studyLog[localDay(new Date())] = {c:0, q:0, qok:0});
-  const before = e.c;
+  const before = todayLog().c;      // tính cả phần của máy khác
   e.c++;
   if(kind === 'quiz'){ e.q++; if(ok) e.qok++; }
   saveStudyLog();
+  scheduleProgressPush();
   renderToday();
   if(before === 0){ const cur = streakInfo().cur; if(STREAK_MILESTONES.includes(cur)) showToast(`Chuỗi ${cur} ngày liên tiếp!`); }
-  if(before < dailyGoal && e.c >= dailyGoal) onGoalReached();
+  if(before < dailyGoal && todayLog().c >= dailyGoal) onGoalReached();
 }
 function unlogActivity(){
   const e = studyLog[localDay(new Date())];
-  if(e && e.c > 0){ e.c--; saveStudyLog(); renderToday(); }
+  if(e && e.c > 0){ e.c--; saveStudyLog(); scheduleProgressPush(); renderToday(); }
 }
 function dayNum(d){ return Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5); }
 function keyDayNum(k){ const [y, m, d] = k.split('-').map(Number); return Math.round(Date.UTC(y, m-1, d) / 864e5); }
 /* Chuỗi ngày: số ngày liên tiếp có học, tính đến hôm nay (hoặc hôm qua nếu hôm nay chưa học) */
 function streakInfo(){
-  const days = Object.keys(studyLog).filter(k=>studyLog[k].c > 0).map(keyDayNum).sort((a, b)=>a - b);
+  const days = Object.keys({...studyLog, ...otherLog}).filter(k=>logDay(k).c > 0).map(keyDayNum).sort((a, b)=>a - b);
   const set = new Set(days), today = dayNum(new Date());
   let cur = 0, d = set.has(today) ? today : today - 1;
   while(set.has(d)){ cur++; d--; }
@@ -1242,7 +1253,7 @@ function renderStats(){
   const bars = document.getElementById('statsBars');
   if(!bars) return;
   const days = [];
-  for(let i=6; i>=0; i--){ const d = new Date(); d.setDate(d.getDate() - i); days.push({d, e: studyLog[localDay(d)] || {c:0, q:0, qok:0}, today: i === 0}); }
+  for(let i=6; i>=0; i--){ const d = new Date(); d.setDate(d.getDate() - i); days.push({d, e: logDay(localDay(d)) || {c:0, q:0, qok:0}, today: i === 0}); }
   const max = Math.max(1, ...days.map(x=>x.e.c));
   bars.innerHTML = days.map(x=>`<div class="stats-bar${x.today ? ' today' : ''}"><span class="val">${x.e.c || ''}</span><div class="col" style="height:${Math.max(4, Math.round(x.e.c / max * 90))}px"></div></div>`).join('');
   document.getElementById('statsDays').innerHTML = days.map(x=>`<span${x.today ? ' class="today"' : ''}>${x.today ? 'Nay' : WEEKDAY[x.d.getDay()]}</span>`).join('');
@@ -1260,7 +1271,8 @@ function renderStats(){
 /* Cột mốc: báo một lần cho mỗi mốc (nhớ trong localStorage) */
 const MILESTONE_KEY = 'tkmb_milestones';
 function milestoneSeen(id){ try{ return (JSON.parse(safeGet(MILESTONE_KEY) || '[]')).includes(id); }catch(e){ return false; } }
-function milestoneMark(id){ try{ const a = JSON.parse(safeGet(MILESTONE_KEY) || '[]'); if(!a.includes(id)){ a.push(id); safeSet(MILESTONE_KEY, JSON.stringify(a)); } }catch(e){} }
+function milestoneMark(id, fromCloud){ try{ const a = JSON.parse(safeGet(MILESTONE_KEY) || '[]'); if(!a.includes(id)){ a.push(id); safeSet(MILESTONE_KEY, JSON.stringify(a)); if(!fromCloud) progressPatch({milestones: {[id]: true}}); } }catch(e){} }
+function milestoneList(){ try{ return JSON.parse(safeGet(MILESTONE_KEY) || '[]'); }catch(e){ return []; } }
 function checkRememberedMilestone(){
   const n = DATA.filter(d=>d.status === 'da_nho').length;
   let top = 0;
@@ -1268,7 +1280,82 @@ function checkRememberedMilestone(){
   if(top) showToast(`Bạn đã nhớ ${top} từ!`);
 }
 const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100, 365];
-function setDailyGoal(n){ dailyGoal = n; safeSet(GOAL_KEY, String(n)); renderToday(); }
+function setDailyGoal(n){ dailyGoal = n; safeSet(GOAL_KEY, String(n)); renderToday(); progressPatch({goal: n}); }
+/* ---- Đồng bộ nhật ký học, mục tiêu, cột mốc giữa các máy: tài liệu riêng learningApp/hoangphuc_progress ----
+   Tách khỏi tài liệu từ vựng nên không thể làm mất dữ liệu học. Mỗi máy chỉ ghi phần của mình (log[ngày][mã máy]),
+   học cùng một ngày trên nhiều máy thì cộng lại. Luôn ghi kiểu gộp (merge); lỗi quyền hoặc mất mạng chỉ ghi cảnh báo. */
+const DEVICE_KEY = 'tkmb_device_id';
+const deviceId = (()=>{ let v = safeGet(DEVICE_KEY); if(!v){ v = Math.random().toString(36).slice(2, 8); safeSet(DEVICE_KEY, v); } return v; })();
+let progressTimer = null, progressUnsub = null, progressWarned = false;
+function progressWarn(err){
+  if(progressWarned) return;
+  progressWarned = true;
+  console.warn('Không đồng bộ được nhật ký học (đang dùng dữ liệu trên máy này):', err && (err.code || err.message));
+}
+function progressPatch(patch){
+  if(!cloudAvailable || !progressRef) return Promise.resolve();
+  return progressRef.set({...patch, updatedAt: firebase.firestore.FieldValue.serverTimestamp()}, {merge:true}).catch(progressWarn);
+}
+function scheduleProgressPush(){ clearTimeout(progressTimer); progressTimer = setTimeout(pushProgressLog, 2000); }
+function pushProgressLog(){
+  clearTimeout(progressTimer);
+  progressTimer = null;
+  const day = localDay(new Date());
+  if(studyLog[day]) progressPatch({log: {[day]: {[deviceId]: studyLog[day]}}});
+}
+/* Nhận dữ liệu từ cloud: cộng phần của các máy khác, nhận mục tiêu, gộp cột mốc */
+function applyProgressDoc(data){
+  const others = {};
+  const log = data.log || {};
+  Object.keys(log).forEach(day=>{
+    const perDevice = log[day] || {};
+    Object.keys(perDevice).forEach(dev=>{
+      if(dev === deviceId) return;
+      const e = perDevice[dev] || {};
+      const o = others[day] || (others[day] = {c:0, q:0, qok:0});
+      o.c += e.c || 0; o.q += e.q || 0; o.qok += e.qok || 0;
+    });
+  });
+  otherLog = others;
+  if([10,20,30,50].includes(data.goal) && data.goal !== dailyGoal){ dailyGoal = data.goal; safeSet(GOAL_KEY, String(data.goal)); }
+  Object.keys(data.milestones || {}).forEach(id=>milestoneMark(id, true));   // máy này không báo lại mốc máy khác đã báo
+  renderToday();
+}
+/* Phần máy này có mà cloud chưa có (lịch sử cũ, thay đổi lúc mất mạng) và các ngày quá 400 ngày cần xoá */
+function progressReconcilePatch(data){
+  const patch = {};
+  const cloudLog = data.log || {};
+  const mine = {};
+  Object.keys(studyLog).forEach(day=>{
+    const c = cloudLog[day] && cloudLog[day][deviceId];
+    if(!c || c.c !== studyLog[day].c || c.q !== studyLog[day].q || c.qok !== studyLog[day].qok) mine[day] = {[deviceId]: studyLog[day]};
+  });
+  const today = dayNum(new Date());
+  Object.keys(cloudLog).forEach(day=>{ if(today - keyDayNum(day) > 400) mine[day] = firebase.firestore.FieldValue.delete(); });
+  if(Object.keys(mine).length) patch.log = mine;
+  const cloudMs = data.milestones || {};
+  const missing = milestoneList().filter(id=>!cloudMs[id]);
+  if(missing.length) patch.milestones = Object.fromEntries(missing.map(id=>[id, true]));
+  if(data.goal === undefined && dailyGoal !== 20) patch.goal = dailyGoal;
+  return Object.keys(patch).length ? patch : null;
+}
+function pullProgress(){
+  if(!cloudAvailable || !progressRef) return Promise.resolve();
+  return progressRef.get({source:'server'}).then(doc=>{
+    const data = doc.exists ? (doc.data() || {}) : {};
+    applyProgressDoc(data);
+    const patch = progressReconcilePatch(data);
+    if(patch) progressPatch(patch);
+    if(!progressUnsub){
+      progressUnsub = progressRef.onSnapshot(d=>{
+        if(d.metadata.hasPendingWrites || d.metadata.fromCache || !d.exists) return;
+        applyProgressDoc(d.data() || {});
+      }, progressWarn);
+    }
+  }).catch(progressWarn);
+}
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'hidden' && progressTimer) pushProgressLog(); });
+
 let toastTimer = null;
 function showToast(msg){
   const el = document.getElementById('toast');
