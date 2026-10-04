@@ -280,6 +280,13 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .quiz-detail b{color:var(--ink);}
   .quiz-detail i{display:block;margin-top:2px;}
   .quiz-hint{margin-top:10px;font-size:15px;color:var(--lav-ink);font-weight:600;letter-spacing:1px;}
+  .hint-slots{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;}
+  .hint-word{display:inline-flex;gap:3px;}
+  .hint-slot{display:inline-block;min-width:1.1em;padding:0 2px;border-bottom:2px solid var(--lav-ink);text-align:center;font-size:22px;font-weight:700;line-height:1.5;color:var(--lav-ink);}
+  .hint-slot.ph{opacity:.55;}
+  .hint-slot.ok{color:var(--mint-ink);border-bottom-color:var(--mint-strong);}
+  .hint-slot.bad{color:var(--pink-ink);border-bottom-color:var(--pink-strong);background:#FDEFF3;border-radius:6px 6px 0 0;}
+  .hint-word.done .hint-slot{background:#EAF7F0;border-radius:6px 6px 0 0;}
   .quiz-feedback{margin-top:14px;padding:12px 14px;border-radius:14px;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px;}
   .quiz-feedback.ok{background:#EAF7F0;color:var(--mint-ink);}
   .quiz-feedback.no{background:#FDEFF3;color:var(--pink-ink);}
@@ -292,6 +299,10 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   @keyframes pop{0%{transform:scale(1);}40%{transform:scale(1.04);}100%{transform:scale(1);}}
   .anim-shake{animation:shake .4s ease-in-out;}
   .anim-pop{animation:pop .35s ease-out;}
+  @keyframes slotIn{0%{transform:translateY(6px) scale(.6);opacity:.3;}60%{transform:translateY(-3px) scale(1.15);}100%{transform:none;opacity:1;}}
+  @keyframes slotShake{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}75%{transform:translateX(3px);}}
+  .anim-slot-in{animation:slotIn .3s ease-out;}
+  .anim-slot-shake{animation:slotShake .25s ease-in-out;}
 
   /* ---------- Danh sách ---------- */
   .list-tools{position:sticky;top:var(--header-h);z-index:5;background:var(--bg);padding:2px 0 10px;}
@@ -351,7 +362,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
   @media (prefers-reduced-motion: reduce){
     .flip-inner, .flip-wrap, .stack-ghost, .session-fill{transition:none !important;}
-    .anim-shake, .anim-pop, .modal{animation:none !important;}
+    .anim-shake, .anim-pop, .anim-slot-in, .anim-slot-shake, .modal{animation:none !important;}
   }
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
@@ -2222,10 +2233,72 @@ function updateQuizProgress(answeredCount){
   document.getElementById('quizProgress').textContent = `Câu ${quizCurrent+1} / ${quizQuestions.length} · Đúng ${quizScore}`;
   document.getElementById('quizFill').style.width = (answeredCount / quizQuestions.length * 100) + '%';
 }
-/* Gợi ý: chữ cái đầu của mỗi từ, phần còn lại là gạch dưới. VD "make it" -> "m _ _ _   i _" */
-function hintPattern(answer){
-  const first = String(answer||'').split('/')[0].trim();
-  return first.split(/\s+/).map(w=>w[0] + ' _'.repeat(Math.max(0, w.length-1))).join('   ');
+/* Gợi ý dạng ô chữ: mỗi ký tự của đáp án là một ô gạch dưới (chữ cái đầu mỗi từ hiện mờ).
+   Gõ đúng vị trí -> ô xanh, gõ sai -> ô đỏ. `prev` là trạng thái lần vẽ trước, để chỉ ô vừa đổi mới chạy hiệu ứng.
+   Trả về trạng thái lần vẽ này. */
+function hintKey(c){ return String(c||'').toLowerCase().replace(/[’‘`´]/g, "'"); }
+function renderHintSlots(box, typed, answer, prev){
+  const t = Array.from(String(typed||''), hintKey);
+  // Đáp án có nhiều phương án (a/b): chọn phương án khớp nhiều ký tự đầu nhất với chữ đang gõ
+  let target = '', best = -1;
+  String(answer||'').split('/').map(a=>a.trim()).filter(Boolean).forEach(a=>{
+    let n = 0;
+    while(n < t.length && n < a.length && hintKey(a[n]) === t[n]) n++;
+    if(n > best){ best = n; target = a; }
+  });
+  const state = [];
+  box.textContent = '';
+  let word = null, wordAllOk = true, wordLetters = 0, wordOk = 0;
+  const closeWord = ()=>{ if(word && wordLetters && wordAllOk && wordOk === wordLetters) word.classList.add('done'); };
+  const openWord = ()=>{
+    if(word) return;
+    word = document.createElement('div'); word.className = 'hint-word'; box.appendChild(word);
+    wordAllOk = true; wordLetters = 0; wordOk = 0;
+  };
+  const addSlot = (i, cls, text)=>{
+    openWord();
+    const s = document.createElement('span');
+    s.className = 'hint-slot ' + cls;
+    s.textContent = text;
+    const key = cls + ':' + text;
+    if(prev[i] !== key){
+      if(cls === 'ok') s.classList.add('anim-slot-in');
+      else if(cls === 'bad') s.classList.add('anim-slot-shake');
+    }
+    state[i] = key;
+    word.appendChild(s);
+    return s;
+  };
+  for(let i=0; i<target.length; i++){
+    const ch = target[i];
+    if(ch === ' '){
+      closeWord(); word = null;                                // sang từ mới
+      if(t[i] !== undefined && t[i] !== ' ' && box.lastChild){ // gõ nhầm ký tự thay cho dấu cách: báo đỏ ở cuối từ trước
+        word = box.lastChild; word.classList.remove('done'); wordAllOk = false;
+        addSlot(i, 'bad', Array.from(String(typed||''))[i]); word = null;
+      }
+      continue;
+    }
+    openWord();
+    wordLetters++;
+    if(t[i] === undefined){
+      addSlot(i, 'ph', (i === 0 || target[i-1] === ' ') ? ch : ' ');
+    } else if(t[i] === hintKey(ch)){
+      wordOk++;
+      addSlot(i, 'ok', ch);
+    } else {
+      wordAllOk = false;
+      addSlot(i, 'bad', t[i] === ' ' ? '·' : Array.from(String(typed||''))[i]);
+    }
+  }
+  closeWord();
+  // Gõ dư ký tự sau độ dài đáp án: mỗi ký tự thừa là một ô đỏ ở cuối
+  for(let i=target.length; i<t.length; i++){
+    if(!box.lastChild){ word = null; }
+    else { word = box.lastChild; word.classList.remove('done'); }
+    addSlot(i, 'bad', t[i] === ' ' ? '·' : Array.from(String(typed||''))[i]);
+  }
+  return state;
 }
 function renderQuizQuestion(){
   clearTimeout(quizAutoTimer);
@@ -2283,7 +2356,18 @@ function renderQuizQuestion(){
     hintBtn.innerHTML = '<svg class="ic"><use href="#i-bulb"/></svg>Gợi ý';
     const hint = document.createElement('div');
     hint.className = 'quiz-hint';
-    hintBtn.onclick = ()=>{ hint.textContent = hintPattern(q.answer); hintBtn.remove(); input.focus(); };
+    hintBtn.onclick = ()=>{
+      q.hintUsed = true;
+      hint.className = 'hint-slots';
+      let prev = renderHintSlots(hint, input.value, q.answer, []);
+      // Gõ tới đâu, ô chữ đổi xanh/đỏ tới đó (không tô khi đang gõ dở bằng bộ gõ có gạch chân)
+      input.addEventListener('input', (e)=>{
+        if(e.isComposing || quizAnswered) return;
+        prev = renderHintSlots(hint, input.value, q.answer, prev);
+      });
+      hintBtn.remove();
+      input.focus();
+    };
     area.appendChild(hintBtn);
     area.appendChild(hint);
     setTimeout(()=>input.focus(), 50);
@@ -2356,24 +2440,47 @@ function answerChoice(btnEl, chosen, q){
   showQuizFeedback(isCorrect, isCorrect ? '✔ Chính xác!' : '✘ Chưa đúng — đáp án đúng được tô xanh.', q);
   finishAnswer(isCorrect, q, chosen);
 }
-function answerText(value, q){
+function answerText(value, q, giveUp){
   if(quizAnswered) return;
-  quizAnswered = true;
   const accepted = String(q.answer||'').split('/').map(normAnswer).filter(Boolean);
   const given = normAnswer(value);
-  let isCorrect = accepted.includes(given);
+  let isCorrect = !giveUp && accepted.includes(given);
   // Gõ nhầm đúng 1 ký tự ở từ dài (≥ 5 ký tự) vẫn tính đúng, nhưng nhắc lại cách viết chuẩn
-  const nearMiss = !isCorrect && given.length >= 5 && accepted.some(a=>editDistance(a, given) === 1);
+  const nearMiss = !giveUp && !isCorrect && given.length >= 5 && accepted.some(a=>editDistance(a, given) === 1);
   if(nearMiss) isCorrect = true;
   const area = document.getElementById('quizAnswerArea');
   const input = area.querySelector('.fill-input');
+  // Đã bấm Gợi ý mà gõ sai: chưa khóa câu, cho thử lại (có nút bỏ qua để xem đáp án)
+  if(q.hintUsed && !isCorrect && !giveUp){
+    q.hadWrongTry = true;
+    if(input){ playAnim(input, 'anim-shake'); input.focus(); }
+    if(!area.querySelector('.retry-msg')){
+      const box = document.createElement('div');
+      box.className = 'quiz-feedback no retry-msg';
+      const span = document.createElement('span');
+      span.textContent = 'Chưa đúng, thử lại nhé.';
+      const skip = document.createElement('button');
+      skip.className = 'speak-small';
+      skip.textContent = 'Bỏ qua, xem đáp án';
+      skip.onclick = ()=>answerText(input ? input.value : '', q, true);
+      box.appendChild(span);
+      box.appendChild(skip);
+      area.appendChild(box);
+    }
+    return;
+  }
+  quizAnswered = true;
+  const retry = area.querySelector('.retry-msg');
+  if(retry) retry.remove();
   if(input){
     input.classList.add(isCorrect ? 'correct' : 'wrong');
     playAnim(input, isCorrect ? 'anim-pop' : 'anim-shake');
   }
-  const text = nearMiss ? `✔ Gần đúng! Viết chuẩn: ${q.answer}` : (isCorrect ? '✔ Chính xác!' : `✘ Chưa đúng. Đáp án: ${q.answer}`);
+  const retried = !!q.hadWrongTry;   // đã sai ít nhất một lần trước khi đúng: vẫn tính là sai để ôn lại
+  const text = nearMiss ? `✔ Gần đúng! Viết chuẩn: ${q.answer}`
+    : (isCorrect ? (retried ? `✔ Đúng rồi sau khi thử lại: ${q.answer}` : '✔ Chính xác!') : `✘ Chưa đúng. Đáp án: ${q.answer}`);
   showQuizFeedback(isCorrect, text, q);
-  finishAnswer(isCorrect, q, value);
+  finishAnswer(isCorrect && !retried, q, value);
 }
 function finishAnswer(isCorrect, q, userAnswer){
   if(isCorrect) quizScore++;
