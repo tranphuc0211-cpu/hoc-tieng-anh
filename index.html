@@ -1621,20 +1621,30 @@ const US_VOICES_FEMALE = [
   'Ava', 'Allison', 'Susan', 'Nicky', 'Joelle'
 ];
 const US_VOICES_MALE = [
-  'Microsoft Guy', 'Microsoft David', 'Microsoft Mark', 'Microsoft Eric', 'Microsoft Christopher',
-  'Aaron', 'Alex', 'Evan', 'Tom', 'Fred'
+  'Evan', 'Tom', 'Nathan', 'Aaron', 'Alex',
+  'Microsoft Guy', 'Microsoft Andrew', 'Microsoft Christopher', 'Microsoft Eric', 'Microsoft David', 'Microsoft Mark'
 ];
+/* Giọng vui/robot của Apple (Fred, Albert, Zarvox...): nghe rất khó, không bao giờ chọn */
+const NOVELTY_VOICES = ['Fred','Albert','Bad News','Bahh','Bells','Boing','Bubbles','Cellos','Good News','Jester','Organ',
+  'Superstar','Trinoids','Whisper','Wobble','Zarvox','Junior','Ralph','Kathy','Eddy','Flo','Grandma','Grandpa','Reed','Rocko','Sandy','Shelley'];
 function pickUSVoice(){
   if(!('speechSynthesis' in window)) return null;
   const voices = speechSynthesis.getVoices() || [];
-  const usVoices = voices.filter(v => v.lang === 'en-US' || v.lang === 'en_US');
+  const usVoices = voices.filter(v => (v.lang === 'en-US' || v.lang === 'en_US') && !NOVELTY_VOICES.some(n => v.name.split(' (')[0] === n));
   if(usVoices.length === 0) return null;
-  for(const name of (speakGender === 'nam' ? US_VOICES_MALE : US_VOICES_FEMALE)){
-    const found = usVoices.find(v => v.name.includes(name));
-    if(found){ voiceFallback = false; return found; }
-  }
+  // Cùng một tên thì ưu tiên bản chất lượng cao (iPhone: "Evan (Premium)", "Evan (Enhanced)")
+  const quality = v => /premium|cao cấp/i.test(v.name) ? 2 : /enhanced|nâng cao/i.test(v.name) ? 1 : 0;
+  const findIn = list => {
+    for(const name of list){
+      const found = usVoices.filter(v => v.name.includes(name)).sort((a,b) => quality(b) - quality(a))[0];
+      if(found) return found;
+    }
+    return null;
+  };
+  const found = findIn(speakGender === 'nam' ? US_VOICES_MALE : US_VOICES_FEMALE);
+  if(found){ voiceFallback = false; return found; }
   voiceFallback = true;
-  return usVoices[0];
+  return findIn(US_VOICES_FEMALE) || usVoices[0];
 }
 function refreshUSVoice(){ usVoice = pickUSVoice(); updateSpeakSettingsUI(); }
 try{
