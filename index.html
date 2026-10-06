@@ -636,6 +636,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <button data-v="nu" onclick="setSpeakGender('nu')">Nữ</button>
         <button data-v="nam" onclick="setSpeakGender('nam')">Nam</button>
       </div>
+      <div class="field-label" style="margin-top:14px;">Chọn giọng cụ thể</div>
+      <select id="speakVoiceSel" onchange="setSpeakVoiceName(this.value)"></select>
       <div class="field-label" style="margin-top:14px;">Tốc độ đọc</div>
       <div class="segmented" id="speakRateSeg">
         <button data-v="cham" onclick="setSpeakRate('cham')">Chậm</button>
@@ -1585,6 +1587,7 @@ function fcFlip(){
 /* ---- Cài đặt phát âm: giọng nam/nữ, tốc độ đọc, tự phát âm, chấm điểm (lưu theo máy) ---- */
 const SPEAK_RATE_KEY = 'tkmb_speak_rate', SPEAK_AUTO_KEY = 'tkmb_speak_auto';
 const SPEAK_VOICE_KEY = 'tkmb_speak_voice', SPEAK_RECORD_KEY = 'tkmb_speak_record';
+const SPEAK_VOICE_NAME_KEY = 'tkmb_speak_voice_name';   // giọng chọn tay trong Cài đặt; rỗng = tự chọn theo nam/nữ
 const SPEAK_RATES = {cham:0.6, vua:0.8, tunhien:1.0};
 let speakRateName = (()=>{ const v = safeGet(SPEAK_RATE_KEY); return v in SPEAK_RATES ? v : 'vua'; })();
 let speakAuto = safeGet(SPEAK_AUTO_KEY) === '1';
@@ -1593,7 +1596,9 @@ let speakRecordOn = safeGet(SPEAK_RECORD_KEY) !== '0';      // mặc định b�
 function setSpeakRate(name){ speakRateName = name; safeSet(SPEAK_RATE_KEY, name); updateSpeakSettingsUI(); }
 function setSpeakAuto(on){ speakAuto = on; safeSet(SPEAK_AUTO_KEY, on ? '1' : '0'); updateSpeakSettingsUI(); }
 function setSpeakRecord(on){ speakRecordOn = on; safeSet(SPEAK_RECORD_KEY, on ? '1' : '0'); updateSpeakSettingsUI(); }
-function setSpeakGender(g){ speakGender = g; safeSet(SPEAK_VOICE_KEY, g); refreshUSVoice(); testSpeak(); }
+let speakVoiceName = safeGet(SPEAK_VOICE_NAME_KEY) || '';
+function setSpeakGender(g){ speakGender = g; safeSet(SPEAK_VOICE_KEY, g); speakVoiceName = ''; safeSet(SPEAK_VOICE_NAME_KEY, ''); refreshUSVoice(); testSpeak(); }
+function setSpeakVoiceName(name){ speakVoiceName = name; safeSet(SPEAK_VOICE_NAME_KEY, name); refreshUSVoice(); testSpeak(); }
 function testSpeak(){ speakText('I like reading books in my spare time, especially on weekends.'); }
 function updateSpeakSettingsUI(){
   setSegActive('speakGenderSeg', speakGender);
@@ -1601,10 +1606,21 @@ function updateSpeakSettingsUI(){
   setSegActive('speakAutoSeg', speakAuto ? '1' : '0');
   const canRecord = micSupported();
   setSegActive('speakRecordSeg', speakRecordOn && canRecord ? '1' : '0');
+  const sel = document.getElementById('speakVoiceSel');
+  if(sel){
+    const region = {US:'Mỹ', GB:'Anh', AU:'Úc', IE:'Ireland', IN:'Ấn Độ', ZA:'Nam Phi', NZ:'New Zealand', CA:'Canada'};
+    const esc = t => t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    sel.innerHTML = '<option value="">Tự chọn theo Nam/Nữ</option>' + englishVoices().map(v=>{
+      const r = region[(v.lang.split(/[-_]/)[1] || '').toUpperCase()] || v.lang;
+      return `<option value="${esc(v.name)}">${esc(v.name)} (${r})</option>`;
+    }).join('');
+    sel.value = usVoice && speakVoiceName === usVoice.name ? speakVoiceName : '';
+  }
   const el = document.getElementById('speakVoiceName');
   if(el){
     el.textContent = !usVoice ? 'Giọng đọc: mặc định của máy'
-      : voiceFallback && speakGender==='nam' ? `Máy này chưa có giọng nam, đang dùng giọng ${usVoice.name}.`
+      : speakVoiceName && usVoice.name === speakVoiceName ? `Giọng đọc: ${usVoice.name} (chọn tay)`
+      : voiceFallback && speakGender==='nam' ? `Trình duyệt chưa cho dùng giọng nam Mỹ, đang dùng giọng ${usVoice.name}. Hãy thử chọn giọng khác ở ô "Chọn giọng cụ thể".`
       : `Giọng đọc: ${usVoice.name} (${speakGender==='nam' ? 'nam' : 'nữ'}, Mỹ)`;
   }
   const note = document.getElementById('speakRecordNote');
@@ -1627,10 +1643,18 @@ const US_VOICES_MALE = [
 /* Giọng vui/robot của Apple (Fred, Albert, Zarvox...): nghe rất khó, không bao giờ chọn */
 const NOVELTY_VOICES = ['Fred','Albert','Bad News','Bahh','Bells','Boing','Bubbles','Cellos','Good News','Jester','Organ',
   'Superstar','Trinoids','Whisper','Wobble','Zarvox','Junior','Ralph','Kathy','Eddy','Flo','Grandma','Grandpa','Reed','Rocko','Sandy','Shelley'];
+/* Mọi giọng tiếng Anh trình duyệt cho dùng (trừ giọng robot), để chọn tay trong Cài đặt */
+function englishVoices(){
+  if(!('speechSynthesis' in window)) return [];
+  return (speechSynthesis.getVoices() || []).filter(v => /^en[-_]/i.test(v.lang) && !NOVELTY_VOICES.some(n => v.name.split(' (')[0] === n));
+}
 function pickUSVoice(){
   if(!('speechSynthesis' in window)) return null;
-  const voices = speechSynthesis.getVoices() || [];
-  const usVoices = voices.filter(v => (v.lang === 'en-US' || v.lang === 'en_US') && !NOVELTY_VOICES.some(n => v.name.split(' (')[0] === n));
+  if(speakVoiceName){
+    const chosen = englishVoices().find(v => v.name === speakVoiceName);
+    if(chosen){ voiceFallback = false; return chosen; }
+  }
+  const usVoices = englishVoices().filter(v => v.lang === 'en-US' || v.lang === 'en_US');
   if(usVoices.length === 0) return null;
   // Cùng một tên thì ưu tiên bản chất lượng cao (iPhone: "Evan (Premium)", "Evan (Enhanced)")
   const quality = v => /premium|cao cấp/i.test(v.name) ? 2 : /enhanced|nâng cao/i.test(v.name) ? 1 : 0;
@@ -1894,7 +1918,7 @@ function speakText(text, opts){
     if(i >= chunks.length){ finishRun(); return; }
     const c = chunks[i++];
     const u = new SpeechSynthesisUtterance(c.t);
-    u.lang = 'en-US';
+    u.lang = usVoice ? usVoice.lang : 'en-US';
     if(usVoice) u.voice = usVoice;
     u.rate = rate;
     u.pitch = 1;
