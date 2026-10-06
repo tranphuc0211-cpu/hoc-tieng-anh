@@ -1748,7 +1748,43 @@ function closeMic(){
 function stopRecording(){
   if(speakRecording){ const r = speakRecording; speakRecording = null; r.cancel(); }
 }
-/* Ghi một lượt: tự dừng khi người học nói xong (im lặng ~0,9 giây). Chưa ai nói sau giveUpMs thì bỏ lượt này;
+/* Tiếng "bíp" báo bắt đầu ghi âm. Phát xong mới ghi, để bản ghi không dính tiếng bíp.
+   Bộ nghe mức âm không chạy (hay gặp trên iPhone) thì phát bằng một đoạn âm thanh WAV tự tạo. */
+let beepUrl = '';
+function beepWav(){
+  if(beepUrl) return beepUrl;
+  const rate = 22050, n = Math.round(rate * 0.18), b = new DataView(new ArrayBuffer(44 + n * 2));
+  const str = (o, s)=>{ for(let k=0; k<s.length; k++) b.setUint8(o + k, s.charCodeAt(k)); };
+  str(0, 'RIFF'); b.setUint32(4, 36 + n * 2, true); str(8, 'WAVEfmt '); b.setUint32(16, 16, true);
+  b.setUint16(20, 1, true); b.setUint16(22, 1, true); b.setUint32(24, rate, true); b.setUint32(28, rate * 2, true);
+  b.setUint16(32, 2, true); b.setUint16(34, 16, true); str(36, 'data'); b.setUint32(40, n * 2, true);
+  for(let k=0; k<n; k++){
+    const fade = Math.min(1, k / 200, (n - k) / 600);
+    b.setInt16(44 + k * 2, Math.sin(2 * Math.PI * 880 * k / rate) * 12000 * fade, true);
+  }
+  beepUrl = URL.createObjectURL(new Blob([b], {type:'audio/wav'}));
+  return beepUrl;
+}
+function playBeep(){
+  return new Promise(done=>{
+    let played = false;
+    try{
+      if(speakCtx && speakCtx.state === 'running'){
+        const o = speakCtx.createOscillator(), g = speakCtx.createGain(), t = speakCtx.currentTime;
+        o.frequency.value = 880;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.4, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+        o.connect(g); g.connect(speakCtx.destination);
+        o.start(t); o.stop(t + 0.2);
+        played = true;
+      }
+    }catch(e){}
+    if(!played){ try{ new Audio(beepWav()).play().catch(()=>{}); }catch(e){} }
+    setTimeout(done, 300);
+  });
+}
+/* Ghi một lượt: tự dừng khi người học nói xong (im lặng ~1,5 giây). Chưa ai nói sau giveUpMs thì bỏ lượt này;
    đang nói dở thì tối đa capMs. cb(blob) — blob = null nếu không nghe thấy tiếng nói.
    Nếu bộ nghe mức âm không hoạt động (ctx bị treo hoặc luôn báo 0, hay gặp trên iPhone) thì không phát hiện được lúc nào
    nói xong: ghi trọn khoảng giveUpMs và giữ bản ghi. */
@@ -1779,7 +1815,7 @@ function recordTurn(giveUpMs, capMs, cb){
       else if(t < 300){ base += rms; n++; return; }                            // 0,3 giây đầu: đo tiếng ồn nền
       else if(rms > Math.max(0.02, base / Math.max(n, 1) * 3)){ heard = true; lastVoice = t; }
     }
-    if(blind ? t > giveUpMs : ((heard && t - lastVoice > 900) || (!heard && t > giveUpMs) || t > capMs)){ try{ rec.stop(); }catch(e){} }
+    if(blind ? t > giveUpMs : ((heard && t - lastVoice > 1500) || (!heard && t > giveUpMs) || t > capMs)){ try{ rec.stop(); }catch(e){} }
   }, 50);
   const handle = {cancel: ()=>{ cancelled = true; clearInterval(poll); try{ if(rec.state !== 'inactive') rec.stop(); }catch(e){} }};
   speakRecording = handle;
@@ -1822,8 +1858,8 @@ function playMine(){
   step();
 }
 
-/* opts.shadow = true: "đọc theo" — đọc từng đoạn rồi chờ người học đọc lại (có micro thì ghi âm để nghe lại).
-   Thứ tự mỗi đoạn: máy đọc (micro tắt) → mở micro → người học đọc → tắt micro → đoạn kế tiếp. */
+/* opts.shadow = true: "đọc theo" — đọc cả câu (vẫn ngắt nghỉ theo đoạn) rồi chờ người học đọc lại cả câu
+   (có micro thì ghi âm để nghe lại). Thứ tự: máy đọc hết câu (micro tắt) → mở micro → bíp → người học đọc → tắt micro. */
 function speakText(text, opts){
   if(!text) return;
   if(!('speechSynthesis' in window)){ alert('Trình duyệt này không hỗ trợ phát âm.'); return; }
@@ -1860,9 +1896,10 @@ function speakText(text, opts){
       if(done || run !== speakRun) return;
       done = true;
       clearTimeout(speakGuard);
-      if(!shadow){ later(c.gap / rate, next); return; }
-      // Đọc theo: chờ người học nhại lại; thời gian chờ = thời gian đọc của đoạn đó (tối thiểu 1,2 giây)
-      const wait = Math.max(1200, c.t.length * 75 / rate + 500);
+      if(!shadow || i < chunks.length){ later(c.gap / rate, next); return; }
+      // Đọc theo: máy đọc xong cả câu mới đến lượt người học, mở micro đúng 1 lần (iPhone hỏi quyền micro mỗi lần mở).
+      // Thời gian chờ = thời gian đọc cả câu (tối thiểu 1,2 giây)
+      const wait = Math.max(1200, text.length * 75 / rate + 500);
       if(micState === 'failed' || micState === 'off'){ setSpeakUI('you'); later(wait, next); return; }
       setSpeakUI('micwait');
       acquireMic().then(r=>{
@@ -1874,13 +1911,16 @@ function speakText(text, opts){
           return;
         }
         micState = 'ok';
-        setSpeakUI('mic');
-        recordTurn(wait + 1200, wait + 4000, blob=>{
-          releaseMic();                                   // tắt micro trước khi máy đọc đoạn kế tiếp
-          if(run !== speakRun) return;
-          if(blob) myTakes.push({url: URL.createObjectURL(blob)});
-          setSpeakUI('you');
-          later(500, next);
+        playBeep().then(()=>{                             // "bíp" rồi mới ghi
+          if(run !== speakRun){ releaseMic(); return; }
+          setSpeakUI('mic');
+          recordTurn(wait + 1200, wait + 4000, blob=>{
+            releaseMic();
+            if(run !== speakRun) return;
+            if(blob) myTakes.push({url: URL.createObjectURL(blob)});
+            setSpeakUI('you');
+            later(500, next);
+          });
         });
       });
     };
