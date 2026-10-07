@@ -312,7 +312,13 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .list-filters{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none;}
   .list-filters::-webkit-scrollbar{display:none;}
   .list-filters select{min-height:40px;padding:6px 10px;font-size:14px;border-radius:999px;flex:none;max-width:60%;}
+  .list-filters .chip{flex:none;white-space:nowrap;}
   .list-count{font-size:13px;color:var(--ink-2);margin-top:8px;}
+  .paste-sum{font-size:14px;font-weight:700;color:var(--ink);margin-top:10px;}
+  .paste-list{margin:6px 0 0;padding:0;list-style:none;font-size:14px;color:var(--ink-2);}
+  .paste-list li{padding:2px 0;word-break:break-word;}
+  .paste-list b{color:var(--ink);}
+  .paste-skip{font-size:13px;color:var(--ink-2);margin-top:8px;word-break:break-word;}
   .word-list{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;}
   .word-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;}
   .word-row:last-child{border-bottom:none;}
@@ -576,7 +582,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <input type="search" id="ovSearch" placeholder="Tìm từ, cấu trúc hoặc nghĩa" oninput="ovResetLimit();renderOverview()">
       </div>
       <div class="list-filters">
-        <select id="ovType" onchange="ovResetLimit();renderOverview()">
+        <button class="chip" id="ovNoExChip" aria-pressed="false" onclick="toggleOvNoExample()">Chưa có ví dụ<b id="ovNoExCount">0</b></button>
+        <select id="ovType"onchange="ovResetLimit();renderOverview()">
           <option value="all">Tất cả loại</option>
           <option value="vocab">Từ vựng</option>
           <option value="grammar">Ngữ pháp</option>
@@ -662,6 +669,11 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <p class="card-sub">Dự phòng khi mất mạng hoặc đổi máy</p>
       <button class="setting-btn" onclick="exportBackup()"><svg class="ic"><use href="#i-download"/></svg><span>Sao lưu dữ liệu (.json)</span><svg class="ic chevron"><use href="#i-chevron"/></svg></button>
       <button class="setting-btn" onclick="openRestoreModal()"><svg class="ic"><use href="#i-upload"/></svg><span>Khôi phục từ bản sao lưu</span><svg class="ic chevron"><use href="#i-chevron"/></svg></button>
+    </div>
+    <div class="card">
+      <h3>Ghi chú</h3>
+      <p class="card-sub">Đưa từ vựng ghi trong app Ghi chú sang đây</p>
+      <button class="setting-btn" onclick="openPasteModal()"><svg class="ic"><use href="#i-upload"/></svg><span>Dán từ vựng từ Ghi chú</span><svg class="ic chevron"><use href="#i-chevron"/></svg></button>
     </div>
     <div class="card">
       <h3>Excel</h3>
@@ -823,6 +835,21 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <button class="btn btn-outline" onclick="closeRestoreModal()">Huỷ</button>
         <button class="btn btn-primary" onclick="restoreFromText()">Khôi phục</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bảng dán từ vựng từ Ghi chú -->
+<div class="modal-overlay" id="pasteModalOverlay" onclick="if(event.target===this) closePasteModal()">
+  <div class="modal">
+    <h3>Dán từ vựng từ Ghi chú</h3>
+    <p class="muted" style="margin-top:-6px;">Mỗi dòng một từ, dạng "từ - /phiên âm/ - nghĩa". Phiên âm và ví dụ có thể thiếu. Sao chép các dòng trong Ghi chú rồi dán vào ô dưới. Dòng nào nhận sai thì sửa hoặc xoá ngay trong ô.</p>
+    <textarea id="pasteTextarea" rows="7" placeholder="expert - /ˈɛkspɜːrt/ - chuyên gia (danh từ)&#10;put off - trì hoãn - We put off the meeting." oninput="renderPastePreview()"></textarea>
+    <div id="pastePreview"></div>
+    <div id="pasteStatusMsg" style="font-size:14px;font-weight:700;color:var(--mint-ink);min-height:18px;margin-top:6px;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closePasteModal()">Huỷ</button>
+      <button class="btn btn-primary" id="pasteAddBtn" onclick="pasteImport()" disabled>Thêm vào app</button>
     </div>
   </div>
 </div>
@@ -2619,6 +2646,11 @@ const OV_PAGE = 100;
 let ovLimit = OV_PAGE;
 function ovResetLimit(){ ovLimit = OV_PAGE; }
 function ovShowMore(){ ovLimit += OV_PAGE; renderOverview(); }
+/* Chip "Chưa có ví dụ": chỉ hiện các mục chưa có câu ví dụ để nhập bổ sung lần lượt.
+   Lưu xong, mục có ví dụ tự rời khỏi danh sách vì saveModal() vẽ lại danh sách. */
+let ovNoExample = false;
+function hasExample(d){ return !!String(d.example||'').trim(); }
+function toggleOvNoExample(){ ovNoExample = !ovNoExample; ovResetLimit(); renderOverview(); }
 
 function renderOverview(){
   fillCategorySelect(document.getElementById('ovCategory'));
@@ -2631,6 +2663,7 @@ function renderOverview(){
     if(type!=='all' && d.type!==type) return false;
     if(cat!=='all' && d.category!==cat) return false;
     if(status!=='all' && d.status!==status) return false;
+    if(ovNoExample && hasExample(d)) return false;
     if(search){
       const hay = `${d.term} ${d.meaning} ${d.example}`.toLowerCase();
       if(!hay.includes(search)) return false;
@@ -2655,7 +2688,15 @@ function renderOverview(){
   const more = document.getElementById('ovMoreBtn');
   more.style.display = filtered.length > shown.length ? '' : 'none';
   more.textContent = `Xem thêm (còn ${filtered.length - shown.length})`;
-  document.getElementById('ovEmpty').style.display = filtered.length===0 ? 'block' : 'none';
+  const emptyEl = document.getElementById('ovEmpty');
+  emptyEl.style.display = filtered.length===0 ? 'block' : 'none';
+  emptyEl.textContent = (ovNoExample && DATA.every(hasExample))
+    ? 'Tất cả các mục đều đã có ví dụ.'
+    : 'Chưa có từ nào khớp. Bấm nút + để thêm từ mới.';
+  const noExChip = document.getElementById('ovNoExChip');
+  noExChip.classList.toggle('active', ovNoExample);
+  noExChip.setAttribute('aria-pressed', ovNoExample ? 'true' : 'false');
+  document.getElementById('ovNoExCount').textContent = DATA.filter(d=>!hasExample(d)).length;
 
   const vocabCount = DATA.filter(d=>d.type==='vocab').length;
   const grammarCount = DATA.filter(d=>d.type==='grammar').length;
@@ -2798,6 +2839,124 @@ function saveModal(){
   closeModal();
   renderOverview();
   renderStatPills();
+}
+
+/* ---- Dán từ vựng từ Ghi chú ----
+   Mỗi dòng trong Ghi chú của anh Phúc: "từ - /phiên âm/ - nghĩa (loại từ)". Cũng nhận "từ - nghĩa" và
+   "từ - /phiên âm/ - nghĩa - ví dụ". Dấu phân cách chính: tab, " - ", " – ", " — " (có khoảng trắng hai bên,
+   để "well-known" không bị cắt). Chỉ khi cả dòng không có dấu chính nào mới dùng ":", "=", "|"; nhờ vậy dấu
+   ":" trong phiên âm hay câu ví dụ không làm hỏng. Phần đứng sau từ mà nằm giữa hai dấu "/" (hoặc "[ ]") là
+   phiên âm; phần còn lại sau nghĩa giữ nguyên làm ví dụ. Dòng không có dấu phân cách nào (VD tiêu đề
+   "Từ Vựng") không phải một từ có nghĩa: bỏ qua và báo trong bản xem trước. */
+const PASTE_SEP_MAIN = /\t|\s[-–—]\s/;
+const PASTE_SEP_ALT = /\s*[:=|]\s*/;
+const PASTE_PHON = /^(?:\/.+\/|\[.+\])$/;
+function parseVocabLines(text){
+  const rows = [], skipped = [];
+  String(text||'').replace(/ /g, ' ').split(/\r?\n/).forEach(raw=>{
+    const line = raw.replace(/^\s*(?:[-–—•*·▪●◦]|\d+[.)])\s+/, '').trim();
+    if(!line) return;
+    const sep = PASTE_SEP_MAIN.test(line) ? PASTE_SEP_MAIN : PASTE_SEP_ALT;
+    let rest = line;
+    const take = ()=>{   // lấy phần kế tiếp; null khi đã hết
+      if(rest === null) return null;
+      const m = sep.exec(rest);
+      if(!m){ const p = rest.trim(); rest = null; return p; }
+      const p = rest.slice(0, m.index).trim();
+      rest = rest.slice(m.index + m[0].length);
+      return p;
+    };
+    const term = take();
+    let second = take();
+    if(!term || second === null){ skipped.push(line); return; }
+    let phonetic = '';
+    if(PASTE_PHON.test(second)){ phonetic = second; second = take(); }
+    rows.push({term, phonetic, meaning: second || '', example: rest === null ? '' : rest.trim()});
+  });
+  return {rows, skipped};
+}
+/* Tính trước sẽ thêm gì, chưa đụng vào DATA. Khớp theo từ viết thường như importExcel().
+   news = mục mới; fills = mục đã có còn trống phiên âm/nghĩa/ví dụ mà dòng dán có; known = số dòng trùng từ đã có. */
+function planPaste(text){
+  const {rows, skipped} = parseVocabLines(text);
+  const byKey = new Map(DATA.filter(d=>d.type==='vocab').map(d=>[d.term.trim().toLowerCase(), {item:d, isNew:false}]));
+  const news = [];
+  const fills = new Map();
+  let known = 0;
+  rows.forEach(r=>{
+    const key = r.term.toLowerCase();
+    const hit = byKey.get(key);
+    if(!hit){
+      const item = {id:uid(), type:'vocab', term:r.term, phonetic:r.phonetic, meaning:r.meaning, example:r.example, blank:'', category:'',
+        status:'new', correct:0, wrong:0, lastReviewed:null};
+      byKey.set(key, {item, isNew:true});
+      news.push(item);
+      return;
+    }
+    known++;
+    if(hit.isNew){   // trùng ngay trong đoạn dán: chỉ điền chỗ còn trống của mục mới
+      ['phonetic','meaning','example'].forEach(k=>{ if(!hit.item[k] && r[k]) hit.item[k] = r[k]; });
+      return;
+    }
+    const f = fills.get(hit.item) || {};
+    ['phonetic','meaning','example'].forEach(k=>{ if(!hit.item[k] && !f[k] && r[k]) f[k] = r[k]; });
+    if(Object.keys(f).length) fills.set(hit.item, f);
+  });
+  return {rows: rows.length, skipped, news, fills, known};
+}
+function setPasteStatus(msg, isError){
+  const el = document.getElementById('pasteStatusMsg');
+  if(!el) return;
+  el.textContent = msg;
+  el.style.color = isError ? 'var(--red)' : 'var(--green)';
+}
+function renderPastePreview(){
+  const plan = planPaste(document.getElementById('pasteTextarea').value);
+  const box = document.getElementById('pastePreview');
+  const btn = document.getElementById('pasteAddBtn');
+  setPasteStatus('', false);
+  if(!plan.rows && !plan.skipped.length){ box.innerHTML = ''; btn.disabled = true; btn.textContent = 'Thêm vào app'; return; }
+  const parts = [`${plan.news.length} từ mới`];
+  if(plan.known) parts.push(`${plan.known} dòng trùng từ đã có`);
+  if(plan.fills.size) parts.push(`${plan.fills.size} từ đã có được bổ sung phiên âm/nghĩa/ví dụ`);
+  const noMeaning = plan.news.filter(d=>!d.meaning).length;
+  if(noMeaning) parts.push(`${noMeaning} từ mới chưa có nghĩa`);
+  const SHOW = 8;
+  const SHOW_SKIP = 3;
+  box.innerHTML = (plan.rows ? `<div class="paste-sum">${plan.rows} dòng: ${parts.join(', ')}</div>` : '')
+    + (plan.news.length ? '<ul class="paste-list">' + plan.news.slice(0, SHOW).map(d=>
+        `<li><b>${escapeHtml(d.term)}</b>${d.phonetic ? ' ' + escapeHtml(d.phonetic) : ''} → ${escapeHtml(d.meaning) || '(chưa có nghĩa)'}${d.example ? ' · ' + escapeHtml(d.example) : ''}</li>`).join('')
+      + (plan.news.length > SHOW ? `<li>… và ${plan.news.length - SHOW} từ nữa</li>` : '') + '</ul>' : '')
+    + (plan.skipped.length ? `<div class="paste-skip">Bỏ qua ${plan.skipped.length} dòng không có dấu " - " (có thể là tiêu đề): ${plan.skipped.slice(0, SHOW_SKIP).map(escapeHtml).join(' · ')}${plan.skipped.length > SHOW_SKIP ? ' …' : ''}</div>` : '');
+  btn.disabled = !(plan.news.length || plan.fills.size);
+  btn.textContent = plan.news.length ? `Thêm ${plan.news.length} từ` : (plan.fills.size ? `Bổ sung ${plan.fills.size} từ` : 'Thêm vào app');
+}
+function openPasteModal(){
+  document.getElementById('pasteTextarea').value = '';
+  renderPastePreview();
+  document.getElementById('pasteModalOverlay').classList.add('show');
+}
+function closePasteModal(){
+  document.getElementById('pasteModalOverlay').classList.remove('show');
+}
+function pasteImport(){
+  const plan = planPaste(document.getElementById('pasteTextarea').value);
+  if(!plan.news.length && !plan.fills.size){ setPasteStatus('✘ Chưa có từ mới nào để thêm. Hãy dán các dòng từ vựng vào ô trên.', true); return; }
+  // Chưa đọc được cloud thì từ vừa thêm sẽ bị bản cloud ghi đè khi có mạng (xem quy tắc mất dữ liệu): không cho thêm.
+  if(cloudAvailable && !cloudReady){
+    setPasteStatus('✘ Chưa kết nối được cloud. Hãy vào Cài đặt, bấm "Đồng bộ ngay" khi có mạng rồi dán lại, để từ mới không bị dữ liệu cloud ghi đè.', true);
+    return;
+  }
+  plan.fills.forEach((f, item)=>{
+    Object.keys(f).forEach(k=>{ if(!item[k]) item[k] = f[k]; });
+  });
+  DATA.push(...plan.news);
+  saveData();
+  applyDataToUI();
+  const msg = [plan.news.length ? `${plan.news.length} từ mới` : '', plan.fills.size ? `${plan.fills.size} từ được bổ sung` : ''].filter(Boolean).join(', ');
+  setPasteStatus(`✔ Đã thêm: ${msg}.`, false);
+  showToast(`Đã thêm: ${msg}`);
+  setTimeout(closePasteModal, 900);
 }
 
 /* ---- Excel import / export ---- */
