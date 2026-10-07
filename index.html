@@ -844,7 +844,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   <div class="modal">
     <h3>Dán từ vựng từ Ghi chú</h3>
     <p class="muted" style="margin-top:-6px;">Mỗi dòng một từ, dạng "từ - /phiên âm/ - nghĩa". Phiên âm và ví dụ có thể thiếu. Sao chép các dòng trong Ghi chú rồi dán vào ô dưới. Dòng nào nhận sai thì sửa hoặc xoá ngay trong ô.</p>
-    <textarea id="pasteTextarea" rows="7" placeholder="expert - /ˈɛkspɜːrt/ - chuyên gia (danh từ)&#10;put off - trì hoãn - We put off the meeting." oninput="renderPastePreview()"></textarea>
+    <textarea id="pasteTextarea" rows="7" placeholder="expert - /ˈɛkspɜːrt/ - chuyên gia (danh từ)&#10;put off - trì hoãn - We put off the meeting." oninput="setPasteStatus('', false);renderPastePreview()"></textarea>
     <div id="pastePreview"></div>
     <div id="pasteStatusMsg" style="font-size:14px;font-weight:700;color:var(--mint-ink);min-height:18px;margin-top:6px;"></div>
     <div class="modal-actions">
@@ -1043,6 +1043,7 @@ function applyDataToUI(){
   renderStatPills();
   refreshQuizCategoryOptions();
   renderOverview();
+  if(document.getElementById('pasteModalOverlay').classList.contains('show')) renderPastePreview();   // dữ liệu vừa đổi: tính lại cho khớp
 }
 
 const SAMPLE_DATA = [
@@ -2914,7 +2915,6 @@ function renderPastePreview(){
   const plan = planPaste(document.getElementById('pasteTextarea').value);
   const box = document.getElementById('pastePreview');
   const btn = document.getElementById('pasteAddBtn');
-  setPasteStatus('', false);
   if(!plan.rows && !plan.skipped.length){ box.innerHTML = ''; btn.disabled = true; btn.textContent = 'Thêm vào app'; return; }
   const parts = [`${plan.news.length} từ mới`];
   if(plan.known) parts.push(`${plan.known} dòng trùng từ đã có`);
@@ -2933,6 +2933,7 @@ function renderPastePreview(){
 }
 function openPasteModal(){
   document.getElementById('pasteTextarea').value = '';
+  setPasteStatus('', false);
   renderPastePreview();
   document.getElementById('pasteModalOverlay').classList.add('show');
 }
@@ -2944,7 +2945,7 @@ function pasteImport(){
   if(!plan.news.length && !plan.fills.size){ setPasteStatus('✘ Chưa có từ mới nào để thêm. Hãy dán các dòng từ vựng vào ô trên.', true); return; }
   // Chưa đọc được cloud thì từ vừa thêm sẽ bị bản cloud ghi đè khi có mạng (xem quy tắc mất dữ liệu): không cho thêm.
   if(cloudAvailable && !cloudReady){
-    setPasteStatus('✘ Chưa kết nối được cloud. Hãy vào Cài đặt, bấm "Đồng bộ ngay" khi có mạng rồi dán lại, để từ mới không bị dữ liệu cloud ghi đè.', true);
+    setPasteStatus('✘ Chưa kết nối được cloud (có thể app vừa mở, chờ vài giây rồi bấm Thêm lại). Nếu vẫn vậy, vào Cài đặt bấm "Đồng bộ ngay" khi có mạng, để từ mới không bị dữ liệu cloud ghi đè.', true);
     return;
   }
   plan.fills.forEach((f, item)=>{
@@ -3204,12 +3205,38 @@ const RELOCK_AFTER_MS = 5 * 60 * 1000;
 const pinGateHTML = (document.getElementById('pinGate') || {}).outerHTML || '';
 let appStarted = false;
 let hiddenAt = 0;
+/* Phím tắt iPhone: mở app bằng link ".../#paste=<nội dung note đã mã hoá URL>". Sau khi qua PIN, app mở sẵn
+   cửa sổ "Dán từ vựng" với bản xem trước; anh Phúc chỉ bấm Thêm. Nội dung nằm sau dấu # nên không gửi tới
+   máy chủ nào. Việc gộp từ vẫn do pasteImport() làm (không trùng, có chốt cloudReady), Phím tắt không ghi
+   thẳng lên cloud. Phải đọc hash ngay lúc tải trang, trước khi nhập PIN. */
+let pendingPasteText = null;
+function takePasteFromHash(){
+  const m = /^#paste=([\s\S]*)$/.exec(location.hash);
+  if(!m) return;
+  try{ pendingPasteText = decodeURIComponent(m[1]); }catch(e){ return; }
+  try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}   // bỏ nội dung khỏi thanh địa chỉ
+}
+function showPendingPaste(){
+  if(pendingPasteText === null) return;
+  const text = pendingPasteText;
+  pendingPasteText = null;
+  switchView('settings');
+  openPasteModal();
+  document.getElementById('pasteTextarea').value = text;
+  renderPastePreview();
+}
+takePasteFromHash();
+window.addEventListener('hashchange', ()=>{
+  takePasteFromHash();
+  if(appStarted && !document.getElementById('pinGate')) showPendingPaste();   // đang khoá thì chờ nhập PIN xong
+});
 function unlockApp(){
   const gate = document.getElementById('pinGate');
   if(gate) gate.remove();
-  if(appStarted) return;          // mở khoá lại sau khi bị khoá: dữ liệu đã nạp, không khởi động lần hai
+  if(appStarted){ showPendingPaste(); return; }   // mở khoá lại sau khi bị khoá: dữ liệu đã nạp, không khởi động lần hai
   appStarted = true;
   startApp();
+  showPendingPaste();
 }
 function lockApp(){
   if(!pinGateHTML || document.getElementById('pinGate')) return;
