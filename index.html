@@ -1890,6 +1890,42 @@ function recordTurn(giveUpMs, capMs, cb){
   rec.start();
 }
 
+/* Chỉnh bản ghi giọng người học cho to đều trước khi cho nghe lại. Micro ghi nhỏ hay to tuỳ người nói xa hay gần
+   (và iPhone tự hạ/nâng độ nhạy), còn âm chuẩn luôn to nên nghe so sánh thấy lúc bé lúc bằng. Giải mã bản ghi, nhân lên
+   cho đỉnh sóng chạm ~90% (tối đa gấp 10 lần, để không khuếch đại tiếng ồn quá mức), rồi ghi lại thành WAV để vẫn phát
+   bằng thẻ <audio> như cũ. Bước nào lỗi thì giữ nguyên bản ghi gốc. */
+const TAKE_PEAK = 0.9, TAKE_MAX_GAIN = 10;
+function normalizeTake(blob){
+  return new Promise(done=>{
+    try{
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC || !blob.arrayBuffer){ done(blob); return; }
+      const ctx = speakCtx || new AC();
+      const finish = out=>{ if(ctx !== speakCtx){ try{ ctx.close(); }catch(e){} } done(out); };
+      blob.arrayBuffer().then(buf=>{
+        const p = ctx.decodeAudioData(buf, audio=>{
+          try{
+            const x = audio.getChannelData(0), n = x.length;
+            let peak = 0;
+            for(let k=0; k<n; k++){ const a = Math.abs(x[k]); if(a > peak) peak = a; }
+            if(peak < 0.001){ finish(blob); return; }          // gần như im lặng: không khuếch đại tiếng ồn
+            const gain = Math.min(TAKE_PEAK / peak, TAKE_MAX_GAIN);
+            const hdr = new DataView(new ArrayBuffer(44)), pcm = new Int16Array(n);
+            const str = (o, s)=>{ for(let k=0; k<s.length; k++) hdr.setUint8(o + k, s.charCodeAt(k)); };
+            for(let k=0; k<n; k++) pcm[k] = Math.max(-1, Math.min(1, x[k] * gain)) * 32767;
+            str(0, 'RIFF'); hdr.setUint32(4, 36 + n * 2, true); str(8, 'WAVEfmt '); hdr.setUint32(16, 16, true);
+            hdr.setUint16(20, 1, true); hdr.setUint16(22, 1, true); hdr.setUint32(24, audio.sampleRate, true);
+            hdr.setUint32(28, audio.sampleRate * 2, true); hdr.setUint16(32, 2, true); hdr.setUint16(34, 16, true);
+            str(36, 'data'); hdr.setUint32(40, n * 2, true);
+            finish(new Blob([hdr, pcm], {type:'audio/wav'}));
+          }catch(e){ finish(blob); }
+        }, ()=>finish(blob));
+        if(p && p.catch) p.catch(()=>{});             // Chrome trả thêm một lời hứa bị từ chối khi giải mã lỗi: đã xử lý ở trên
+      }, ()=>finish(blob));
+    }catch(e){ done(blob); }
+  });
+}
+
 /* Kết quả một lượt "đọc theo": các đoạn đã ghi + hai nút nghe lại */
 let myTakes = [];          // [{url}] theo thứ tự các đoạn
 let lastShadowText = '';
@@ -1993,7 +2029,10 @@ function shadowRecord(text){
         setMicOn(false);
         if(run !== speakRun) return;
         setSpeakUI(null);
-        if(blob){ myTakes.push({url: URL.createObjectURL(blob)}); renderTakes(); }
+        if(blob) normalizeTake(blob).then(b=>{
+          if(run !== speakRun) return;                 // trong lúc chỉnh âm lượng, anh Phúc đã chuyển thẻ / bấm dừng
+          myTakes.push({url: URL.createObjectURL(b)}); renderTakes();
+        });
         else showTakes('<span class="take-note">Chưa ghi được giọng bạn. Hãy thử nói to hơn.</span>');
       });
     });
@@ -3205,10 +3244,10 @@ const RELOCK_AFTER_MS = 5 * 60 * 1000;
 const pinGateHTML = (document.getElementById('pinGate') || {}).outerHTML || '';
 let appStarted = false;
 let hiddenAt = 0;
-/* Phím tắt iPhone: mở app bằng link ".../#paste=<nội dung note đã mã hoá URL>". Sau khi qua PIN, app mở sẵn
-   cửa sổ "Dán từ vựng" với bản xem trước; anh Phúc chỉ bấm Thêm. Nội dung nằm sau dấu # nên không gửi tới
-   máy chủ nào. Việc gộp từ vẫn do pasteImport() làm (không trùng, có chốt cloudReady), Phím tắt không ghi
-   thẳng lên cloud. Phải đọc hash ngay lúc tải trang, trước khi nhập PIN. */
+/* Phím tắt iPhone: mở app bằng link ".../#paste=<nội dung note đã mã hoá URL>". Sau khi qua PIN, app mở cửa sổ
+   "Dán từ vựng" với bản xem trước rồi TỰ thêm, không cần bấm (autoPasteWhenReady). Nội dung nằm sau dấu # nên
+   không gửi tới máy chủ nào. Việc gộp từ vẫn do pasteImport() làm (không trùng, có chốt cloudReady), Phím tắt
+   không ghi thẳng lên cloud. Phải đọc hash ngay lúc tải trang, trước khi nhập PIN. */
 let pendingPasteText = null;
 function takePasteFromHash(){
   const m = /^#paste=([\s\S]*)$/.exec(location.hash);
@@ -3224,6 +3263,31 @@ function showPendingPaste(){
   openPasteModal();
   document.getElementById('pasteTextarea').value = text;
   renderPastePreview();
+  autoPasteWhenReady();
+}
+/* Tự thêm từ từ link Phím tắt. pasteImport() từ chối khi chưa đọc xong cloud (từ mới sẽ bị cloud ghi đè), nên chờ tới
+   khi cloudReady (tối đa ~18 giây). Quá hạn hoặc anh Phúc đã đóng cửa sổ thì thôi, không tự thêm; cửa sổ còn mở thì
+   vẫn bấm Thêm bằng tay được. */
+function autoPasteWhenReady(){
+  let tries = 0;
+  const tick = ()=>{
+    if(!document.getElementById('pasteModalOverlay').classList.contains('show')) return;
+    if(cloudAvailable && !cloudReady){
+      if(++tries > 60){ setPasteStatus('✘ Chưa kết nối được cloud nên chưa tự thêm. Chờ vài giây rồi bấm Thêm, hoặc vào Cài đặt bấm "Đồng bộ ngay".', true); return; }
+      setPasteStatus('⏳ Đang kết nối để thêm từ...', false);
+      setTimeout(tick, 300);
+      return;
+    }
+    const plan = planPaste(document.getElementById('pasteTextarea').value);
+    if(plan.rows && !plan.news.length && !plan.fills.size){   // note này app đã có đủ: không phải lỗi
+      setPasteStatus('Không có từ mới: các từ trong note đã có sẵn trong app.', false);
+      showToast('Không có từ mới nào để thêm');
+      setTimeout(closePasteModal, 1500);
+      return;
+    }
+    pasteImport();   // không có dòng nào đọc được thì pasteImport tự báo lỗi và giữ cửa sổ mở
+  };
+  tick();
 }
 takePasteFromHash();
 window.addEventListener('hashchange', ()=>{
