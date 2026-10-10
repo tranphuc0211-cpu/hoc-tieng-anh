@@ -1891,38 +1891,63 @@ function recordTurn(giveUpMs, capMs, cb){
 }
 
 /* Chỉnh bản ghi giọng người học cho to đều trước khi cho nghe lại. Micro ghi nhỏ hay to tuỳ người nói xa hay gần
-   (và iPhone tự hạ/nâng độ nhạy), còn âm chuẩn luôn to nên nghe so sánh thấy lúc bé lúc bằng. Giải mã bản ghi, nhân lên
-   cho đỉnh sóng chạm ~90% (tối đa gấp 10 lần, để không khuếch đại tiếng ồn quá mức), rồi ghi lại thành WAV để vẫn phát
-   bằng thẻ <audio> như cũ. Bước nào lỗi thì giữ nguyên bản ghi gốc. */
-const TAKE_PEAK = 0.9, TAKE_MAX_GAIN = 10;
+   (và iPhone tự hạ/nâng độ nhạy), còn âm chuẩn luôn to nên nghe so sánh thấy lúc bé lúc bằng. Giải mã bản ghi rồi nhân
+   lên theo ĐỘ TO TRUNG BÌNH của phần có tiếng nói, không theo đỉnh sóng cao nhất: trên iPhone micro sát miệng, các âm bật
+   hơi (p, t, b) và tiếng "bụp" lúc micro vừa bật tạo đỉnh nhọn, chỉnh theo đỉnh thì cả bản ghi bị kéo nhỏ theo.
+   - 100 ms đầu (tiếng "bụp") không tính khi đo và được làm nhỏ dần lên;
+   - đo theo khung 20 ms, chỉ lấy khung có tiếng nói, đưa về mức TAKE_RMS;
+   - không nhân quá TAKE_MAX_GAIN lần (để không khuếch đại tiếng ồn) và không để 99,9% mẫu vượt ~98%;
+   - vài đỉnh hiếm còn vượt 0,8 thì nén êm thay vì cắt cụt.
+   Ghi lại thành WAV để vẫn phát bằng thẻ <audio> như cũ. Trả {blob, ok}: ok = false khi không chỉnh được (giải mã lỗi),
+   lúc đó giữ nguyên bản ghi gốc. */
+const TAKE_RMS = 0.15, TAKE_MAX_GAIN = 10;
 function normalizeTake(blob){
   return new Promise(done=>{
     try{
       const AC = window.AudioContext || window.webkitAudioContext;
-      if(!AC || !blob.arrayBuffer){ done(blob); return; }
+      if(!AC || !blob.arrayBuffer){ done({blob, ok:false}); return; }
       const ctx = speakCtx || new AC();
-      const finish = out=>{ if(ctx !== speakCtx){ try{ ctx.close(); }catch(e){} } done(out); };
+      const finish = (out, ok)=>{ if(ctx !== speakCtx){ try{ ctx.close(); }catch(e){} } done({blob: out, ok}); };
       blob.arrayBuffer().then(buf=>{
         const p = ctx.decodeAudioData(buf, audio=>{
           try{
-            const x = audio.getChannelData(0), n = x.length;
-            let peak = 0;
-            for(let k=0; k<n; k++){ const a = Math.abs(x[k]); if(a > peak) peak = a; }
-            if(peak < 0.001){ finish(blob); return; }          // gần như im lặng: không khuếch đại tiếng ồn
-            const gain = Math.min(TAKE_PEAK / peak, TAKE_MAX_GAIN);
+            const x = audio.getChannelData(0), n = x.length, rate = audio.sampleRate;
+            const skip = Math.min(n, Math.round(rate * 0.1)), fl = Math.max(1, Math.round(rate * 0.02));
+            // Mức to từng khung 20 ms (bỏ 100 ms đầu)
+            const frames = [], mags = new Float32Array(n - skip);
+            for(let s=skip; s<n; s+=fl){
+              let sum = 0; const e = Math.min(n, s + fl);
+              for(let k=s; k<e; k++) sum += x[k] * x[k];
+              frames.push({sum, len: e - s});
+            }
+            for(let k=skip; k<n; k++) mags[k - skip] = Math.abs(x[k]);
+            mags.sort();
+            const p999 = mags.length ? mags[Math.min(mags.length - 1, Math.floor(mags.length * 0.999))] : 0;
+            if(p999 < 0.001){ finish(blob, true); return; }     // gần như im lặng: không khuếch đại tiếng ồn
+            const levels = frames.map(f=>Math.sqrt(f.sum / f.len)).sort((a,b)=>a-b);
+            const floor = Math.max(0.002, 0.2 * levels[Math.min(levels.length - 1, Math.floor(levels.length * 0.95))]);
+            let vSum = 0, vLen = 0;
+            frames.forEach(f=>{ if(Math.sqrt(f.sum / f.len) >= floor){ vSum += f.sum; vLen += f.len; } });
+            const voicedRms = vLen ? Math.sqrt(vSum / vLen) : p999;
+            const gain = Math.min(TAKE_RMS / voicedRms, 0.98 / p999, TAKE_MAX_GAIN);
             const hdr = new DataView(new ArrayBuffer(44)), pcm = new Int16Array(n);
             const str = (o, s)=>{ for(let k=0; k<s.length; k++) hdr.setUint8(o + k, s.charCodeAt(k)); };
-            for(let k=0; k<n; k++) pcm[k] = Math.max(-1, Math.min(1, x[k] * gain)) * 32767;
+            for(let k=0; k<n; k++){
+              let y = x[k] * gain * (k < skip ? k / skip : 1);
+              const a = Math.abs(y);
+              if(a > 0.8) y = Math.sign(y) * (0.8 + 0.2 * Math.tanh((a - 0.8) / 0.2));
+              pcm[k] = y * 32767;
+            }
             str(0, 'RIFF'); hdr.setUint32(4, 36 + n * 2, true); str(8, 'WAVEfmt '); hdr.setUint32(16, 16, true);
-            hdr.setUint16(20, 1, true); hdr.setUint16(22, 1, true); hdr.setUint32(24, audio.sampleRate, true);
-            hdr.setUint32(28, audio.sampleRate * 2, true); hdr.setUint16(32, 2, true); hdr.setUint16(34, 16, true);
+            hdr.setUint16(20, 1, true); hdr.setUint16(22, 1, true); hdr.setUint32(24, rate, true);
+            hdr.setUint32(28, rate * 2, true); hdr.setUint16(32, 2, true); hdr.setUint16(34, 16, true);
             str(36, 'data'); hdr.setUint32(40, n * 2, true);
-            finish(new Blob([hdr, pcm], {type:'audio/wav'}));
-          }catch(e){ finish(blob); }
-        }, ()=>finish(blob));
+            finish(new Blob([hdr, pcm], {type:'audio/wav'}), true);
+          }catch(e){ finish(blob, false); }
+        }, ()=>finish(blob, false));
         if(p && p.catch) p.catch(()=>{});             // Chrome trả thêm một lời hứa bị từ chối khi giải mã lỗi: đã xử lý ở trên
-      }, ()=>finish(blob));
-    }catch(e){ done(blob); }
+      }, ()=>finish(blob, false));
+    }catch(e){ done({blob, ok:false}); }
   });
 }
 
@@ -1940,7 +1965,7 @@ function clearTakes(){
 function renderTakes(){
   showTakes(`<span class="take-label">Nghe lại để so sánh</span>
     <button class="speak-small" onclick="event.stopPropagation();playStandard()"><svg class="ic"><use href="#i-volume"/></svg>Âm chuẩn</button>
-    <button class="speak-small mine" onclick="event.stopPropagation();playMine()"><svg class="ic"><use href="#i-mic"/></svg>Giọng bạn</button>`);
+    <button class="speak-small mine" onclick="event.stopPropagation();playMine()"><svg class="ic"><use href="#i-mic"/></svg>Giọng bạn</button>${myTakes.some(t=>!t.ok) ? '<span class="take-note">(chưa chỉnh được âm lượng)</span>' : ''}`);
 }
 function stopMyPlayback(){
   myPlayRun++;
@@ -2029,9 +2054,9 @@ function shadowRecord(text){
         setMicOn(false);
         if(run !== speakRun) return;
         setSpeakUI(null);
-        if(blob) normalizeTake(blob).then(b=>{
+        if(blob) normalizeTake(blob).then(r=>{
           if(run !== speakRun) return;                 // trong lúc chỉnh âm lượng, anh Phúc đã chuyển thẻ / bấm dừng
-          myTakes.push({url: URL.createObjectURL(b)}); renderTakes();
+          myTakes.push({url: URL.createObjectURL(r.blob), ok: r.ok}); renderTakes();
         });
         else showTakes('<span class="take-note">Chưa ghi được giọng bạn. Hãy thử nói to hơn.</span>');
       });
