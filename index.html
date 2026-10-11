@@ -3266,8 +3266,8 @@ function importBackupFile(evt){
 
 /* ============================================================
    MÃ PIN — chỉ che giao diện, KHÔNG bảo vệ dữ liệu trên Firestore.
-   Mã lưu dạng băm (không lưu PIN gốc). Mỗi lần mở / tải lại app đều phải nhập (không nhớ theo máy).
-   Đổi PIN: thay PIN_HASH bằng pinHash('<PIN mới>').
+   Mã lưu dạng băm (không lưu PIN gốc). Mỗi thiết bị chỉ nhập 1 lần: nhập đúng thì máy nhớ (PIN_REMEMBER_KEY),
+   lần mở sau vào thẳng. Đổi PIN: thay PIN_HASH bằng pinHash('<PIN mới>'), mọi máy sẽ phải nhập lại 1 lần.
 ============================================================ */
 const PIN_HASH = '260e8833';
 function pinHash(pin){
@@ -3277,12 +3277,9 @@ function pinHash(pin){
   for(let i=0; i<s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
   return h.toString(16).padStart(8, '0');
 }
-/* Khoá lại khi rời app từ 5 phút trở lên (VD: để điện thoại ở chế độ nền). Không lưu trạng thái mở khoá ở đâu cả:
-   mở lại trang vẫn hỏi PIN như trước. */
-const RELOCK_AFTER_MS = 5 * 60 * 1000;
-const pinGateHTML = (document.getElementById('pinGate') || {}).outerHTML || '';
+/* Dấu "máy này đã nhập đúng PIN": lưu chính PIN_HASH (không phải PIN gốc), nên đổi PIN_HASH là dấu cũ hết hiệu lực. */
+const PIN_REMEMBER_KEY = 'tkmb_pin_device_v1';
 let appStarted = false;
-let hiddenAt = 0;
 /* Phím tắt iPhone: mở app bằng link ".../#paste=<nội dung note đã mã hoá URL>". Sau khi qua PIN, app mở cửa sổ
    "Dán từ vựng" với bản xem trước rồi TỰ thêm, không cần bấm (autoPasteWhenReady). Nội dung nằm sau dấu # nên
    không gửi tới máy chủ nào. Việc gộp từ vẫn do pasteImport() làm (không trùng, có chốt cloudReady), Phím tắt
@@ -3341,20 +3338,6 @@ function unlockApp(){
   startApp();
   showPendingPaste();
 }
-function lockApp(){
-  if(!pinGateHTML || document.getElementById('pinGate')) return;
-  stopSpeaking();
-  clearTakes();
-  releaseMic();                   // khoá app = hết phiên: đóng micro, lần sau iPhone hỏi lại
-  pinEntry = '';
-  document.body.insertAdjacentHTML('afterbegin', pinGateHTML);
-  renderPinDots();
-}
-document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState === 'hidden'){ hiddenAt = Date.now(); return; }
-  if(appStarted && hiddenAt && Date.now() - hiddenAt >= RELOCK_AFTER_MS) lockApp();
-  hiddenAt = 0;
-});
 /* Bàn phím số kiểu iPhone: nhập đủ PIN_LENGTH số là tự kiểm tra */
 const PIN_LENGTH = 4;
 let pinEntry = '';
@@ -3375,6 +3358,7 @@ function pinBackspace(){
 function submitPin(){
   if(pinHash(pinEntry) === PIN_HASH){
     pinEntry = '';
+    safeSet(PIN_REMEMBER_KEY, PIN_HASH);   // nhớ máy này: lần mở sau không hỏi PIN nữa
     unlockApp();
   } else {
     pinEntry = '';
@@ -3419,6 +3403,9 @@ function startApp(){
       + '</div>';
   }
 }
+
+// Máy đã nhập đúng PIN trước đó: vào thẳng, không hiện bàn phím PIN. Đặt cuối script để mọi biến của app đã sẵn sàng.
+if(safeGet(PIN_REMEMBER_KEY) === PIN_HASH) unlockApp();
 
 /* Mở được khi mất mạng: file sw.js (cùng thư mục với trang) lưu lại bản app. Mở bằng file:// hoặc thiếu sw.js thì bỏ qua. */
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
