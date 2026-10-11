@@ -1782,11 +1782,18 @@ function makeMicContext(){
 function micLive(){
   return !!sessionMic && sessionMic.stream.getAudioTracks().some(t=>t.readyState === 'live');
 }
-/* Bật/tắt tiếng micro mà KHÔNG đóng micro: đóng rồi mở lại thì iPhone hỏi quyền micro lần nữa */
+/* iPhone/iPad: khi micro còn mở (kể cả đã tắt tiếng) iPhone tự hạ loa, nên âm chuẩn và giọng bạn đều nghe nhỏ.
+   Vì vậy trên iPhone đóng hẳn micro sau mỗi lượt ghi; muốn khỏi bị hỏi quyền mỗi lần thì đặt
+   Safari → aA → Cài đặt trang web → Micrô → Cho phép. Máy tính vẫn giữ micro mở cả phiên như cũ. */
+const MIC_CLOSE_EACH_TAKE = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+/* Bật/tắt tiếng micro mà KHÔNG đóng micro: đóng rồi mở lại thì iPhone hỏi quyền micro lần nữa.
+   Riêng iPhone (MIC_CLOSE_EACH_TAKE): tắt = đóng hẳn micro, để loa trở lại to bình thường. */
 function setMicOn(on){
-  if(sessionMic) sessionMic.stream.getAudioTracks().forEach(t=>{ t.enabled = on; });
+  if(!sessionMic) return;
+  if(!on && MIC_CLOSE_EACH_TAKE){ try{ sessionMic.stream.getTracks().forEach(t=>t.stop()); }catch(e){} sessionMic = null; return; }
+  sessionMic.stream.getAudioTracks().forEach(t=>{ t.enabled = on; });
 }
-/* Lấy micro: lần đầu trong phiên thì xin quyền (iPhone hỏi 1 lần), các lần sau dùng lại micro đang mở */
+/* Lấy micro: lần đầu trong phiên thì xin quyền, các lần sau dùng lại micro đang mở (iPhone: micro đã đóng sau lượt trước nên mở lại) */
 async function acquireMic(){
   if(micLive()){ setMicOn(true); return {ok:true}; }
   if(sessionMic){ try{ sessionMic.stream.getTracks().forEach(t=>t.stop()); }catch(e){} sessionMic = null; }   // micro cũ đã bị máy tắt
@@ -1863,7 +1870,7 @@ function recordTurn(giveUpMs, capMs, cb){
   const rec = new MediaRecorder(stream);
   const parts = [];
   const t0 = performance.now();
-  let heard = false, lastVoice = 0, base = 0, n = 0, silentFrames = 0, cancelled = false;
+  let heard = false, lastVoice = 0, floor = Infinity, loud = 0, loudT = 0, silentFrames = 0, cancelled = false;
   rec.ondataavailable = e=>{ if(e.data && e.data.size) parts.push(e.data); };
   rec.onstop = ()=>{
     clearInterval(poll);
@@ -1880,8 +1887,15 @@ function recordTurn(giveUpMs, capMs, cb){
       const rms = Math.sqrt(sum / buf.length);
       silentFrames = rms === 0 ? silentFrames + 1 : 0;
       if(t > 1200 && silentFrames * 50 >= t - 300 && !heard) blind = true;    // từ đầu đến giờ mức âm luôn đúng bằng 0: bộ đo không chạy
-      else if(t < 300){ base += rms; n++; return; }                            // 0,3 giây đầu: đo tiếng ồn nền
-      else if(rms > Math.max(0.02, base / Math.max(n, 1) * 3)){ heard = true; lastVoice = t; }
+      else{
+        // Tiếng ồn nền = khung nhỏ nhất từ đầu lượt. Không lấy trung bình 0,3 giây đầu như trước: người học nói ngay sau
+        // tiếng bíp thì tiếng nói lọt vào mức "ồn nền", ngưỡng bị đẩy cao gấp mấy lần giọng, một chữ ngắn không bao giờ vượt.
+        if(rms < floor) floor = rms;
+        if(rms > loud){ loud = rms; loudT = t; }
+        const thr = Math.max(0.02, floor * 3);
+        if(rms > thr) lastVoice = t;
+        if(!heard && loud > thr){ heard = true; lastVoice = Math.max(lastVoice, loudT); }   // kể cả khi nói từ khung đầu tiên
+      }
     }
     if(blind ? t > giveUpMs : ((heard && t - lastVoice > 1500) || (!heard && t > giveUpMs) || t > capMs)){ try{ rec.stop(); }catch(e){} }
   }, 50);
@@ -2030,7 +2044,7 @@ function speakText(text, opts){
   next();
 }
 /* "Đọc theo" có ghi âm: KHÔNG đọc lại âm chuẩn, bấm là bíp rồi ghi giọng người học ngay.
-   Micro mở 1 lần cho cả phiên (iPhone chỉ hỏi quyền 1 lần), giữa các lượt chỉ tắt tiếng chứ không đóng. */
+   Máy tính: micro mở 1 lần cho cả phiên, giữa các lượt chỉ tắt tiếng. iPhone: đóng hẳn sau mỗi lượt (xem MIC_CLOSE_EACH_TAKE). */
 function shadowRecord(text){
   stopSpeaking();
   clearTakes();
