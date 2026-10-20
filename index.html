@@ -256,6 +256,20 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     .modal{border-radius:24px;padding-bottom:22px;max-width:520px;}
   }
 
+  /* ---------- Cụm hôm nay ---------- */
+  .say-entry{margin-bottom:12px;}
+  .say-modal{text-align:center;}
+  .say-top{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--ink-2);margin-bottom:8px;}
+  .say-tag{padding:3px 10px;border-radius:999px;background:var(--lav-100);color:var(--lav-ink);font-weight:700;}
+  .say-hint{margin-top:-6px;}
+  .say-body{margin:6px 0 14px;}
+  .say-term{font-size:26px;font-weight:800;color:var(--ink);}
+  .say-meaning{font-size:18px;font-weight:700;color:var(--lav-ink);margin-top:4px;}
+  .say-sentence{font-size:19px;line-height:1.5;color:var(--ink);margin-top:10px;}
+  .say-count{font-size:40px;font-weight:800;color:var(--lav-accent);min-height:48px;}
+  .say-rate{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+  .say-rate:empty{display:none;}
+
   /* ---------- Quiz ---------- */
   .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .mode-tile{min-height:92px;padding:14px;border-radius:16px;border:1.5px solid var(--border);background:var(--surface);text-align:left;font:inherit;cursor:pointer;display:flex;flex-direction:column;gap:4px;color:var(--ink);}
@@ -365,6 +379,43 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
   .storage-warning-bar{position:sticky;top:0;z-index:40;background:var(--butter);color:var(--butter-ink);padding:10px 16px;font-size:14px;text-align:center;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;}
   .storage-warning-bar button{min-height:36px;padding:6px 12px;border:none;border-radius:10px;background:var(--surface);color:var(--butter-ink);font-weight:700;font-size:14px;cursor:pointer;}
+
+  /* ---------- Màn hình thấp (iPhone 8 / SE: Safari chỉ còn ~550 px chiều cao) ----------
+     Thu gọn khoảng cách và nút để tab Học vẫn vừa một màn hình, không bị thanh dưới che hàng nút đánh dấu.
+     Máy cao hơn 700 px (iPhone 15 Pro Max...) giữ nguyên bố cục cũ. */
+  @media (max-height:700px){
+    main{padding-top:8px;padding-bottom:calc(var(--nav-h) + var(--safe-b) + 8px);}
+    #flashcardStage{gap:8px;}
+    .today-strip{margin-bottom:0;}
+    .today-streak, .due-pill{height:36px;min-height:36px;}
+    .filter-btn{min-height:40px;padding:6px 12px;}
+    .card-stack{height:calc(100vh - 322px - var(--safe-b));height:calc(100dvh - 322px - var(--safe-b));min-height:200px;margin-bottom:12px;}
+    .face{padding:46px 18px 14px;}
+    .term{font-size:30px;}
+    .hint{margin-top:8px;}
+    .flash-controls{gap:16px;}
+    .round-btn{gap:4px;}
+    .round-btn .circle{width:52px;height:52px;}
+    .round-btn .circle .ic{width:24px;height:24px;}
+    .round-btn.undo .circle{width:42px;height:42px;margin-top:5px;}
+    /* Bảng trượt (Cụm hôm nay, bộ lọc...): cao hơn một chút, khoảng cách gọn hơn */
+    .modal{max-height:94vh;}
+    .modal h3{margin-bottom:8px;}
+    .modal-actions{margin-top:10px;}
+    .say-top{margin-bottom:4px;}
+    .say-hint{font-size:14px;margin-bottom:6px;}
+    .say-body{margin:2px 0 8px;}
+    .say-term{font-size:22px;}
+    .say-sentence{font-size:17px;margin-top:4px;}
+    .say-count{font-size:32px;min-height:36px;}
+    .say-modal .speak-status:empty{display:none;}
+    .say-rate{margin-top:8px;}
+    /* Màn nhập PIN */
+    .pin-logo{width:52px;height:52px;margin-bottom:8px;}
+    .pin-box p{margin-bottom:14px;}
+    .pin-pad{grid-template-columns:repeat(3,66px);gap:10px 22px;}
+    .pin-key{width:66px;height:66px;font-size:26px;}
+  }
 
   @media (prefers-reduced-motion: reduce){
     .flip-inner, .flip-wrap, .stack-ghost, .session-fill{transition:none !important;}
@@ -521,6 +572,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   <section id="view-quiz" class="view">
     <div id="quizSetupCard">
       <div class="view-title">Luyện tập</div>
+      <button class="btn btn-soft btn-block say-entry" onclick="openSay(true)"><svg class="ic"><use href="#i-mic"/></svg>Cụm hôm nay: luyện nói 1 cụm</button>
       <div class="card">
         <span class="field-label">Kiểu bài</span>
         <div class="mode-grid" id="quizModeGrid">
@@ -854,6 +906,24 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   </div>
 </div>
 
+<!-- Cụm hôm nay: hiện sau khi nhập PIN, luyện nói 1 cụm (xem phần CỤM HÔM NAY trong script) -->
+<div class="modal-overlay" id="sayOverlay" onclick="if(event.target===this) closeSay()">
+  <div class="modal say-modal">
+    <div class="say-top"><span class="say-tag" id="sayTag"></span><span id="sayStepNo"></span></div>
+    <h3 id="sayTitle"></h3>
+    <p class="muted say-hint" id="sayHint"></p>
+    <div class="say-body" id="sayBody"></div>
+    <div class="speak-actions" id="sayActions"></div>
+    <div class="speak-status" aria-live="polite"></div>
+    <div class="speak-takes" aria-live="polite"></div>
+    <div class="say-rate" id="sayRate"></div>
+    <div class="modal-actions" style="justify-content:space-between;">
+      <button class="btn btn-outline" onclick="closeSay()">Để sau</button>
+      <button class="btn btn-primary" id="sayNextBtn" onclick="sayGoNext()">Tiếp</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ============================================================
    DATA MODEL
@@ -861,7 +931,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
      id, type: 'vocab' | 'grammar',
      term, phonetic, meaning, example, blank, category,
      status: 'new' | 'chua_nho' | 'trung_binh' | 'da_nho',
-     correct: number, wrong: number, lastReviewed: ISOstring|null
+     correct: number, wrong: number, lastReviewed: ISOstring|null,
+     sayBox, sayNext, sayLast: tiến độ "Cụm hôm nay" (chỉ có ở mục đã luyện nói, xem phần CỤM HÔM NAY)
    }
 ============================================================ */
 const STORAGE_KEY = 'tkmb_english_learning_data_v1';
@@ -892,7 +963,7 @@ let pendingPush = false;
 let cloudUnsubscribe = null;
 const BACKUP_DAY_KEY = 'tkmb_last_backup_day';
 /* Thứ tự trường cố định để so sánh dữ liệu (Firestore trả về các trường theo thứ tự a-z) */
-const ITEM_FIELDS = ['id','type','term','phonetic','meaning','example','blank','category','status','correct','wrong','lastReviewed'];
+const ITEM_FIELDS = ['id','type','term','phonetic','meaning','example','blank','category','status','correct','wrong','lastReviewed','sayBox','sayNext','sayLast'];
 function sameData(a, b){ return JSON.stringify(a, ITEM_FIELDS) === JSON.stringify(b, ITEM_FIELDS); }
 try{
   firebase.initializeApp(firebaseConfig);
@@ -935,17 +1006,24 @@ function pushToCloud(){
 
 /* Gộp dữ liệu cloud với dữ liệu trên máy: lấy cloud làm gốc, nhưng mục nào trên máy
    được học gần đây hơn (lastReviewed mới hơn) thì giữ tiến trình học của máy.
+   Tiến độ "Cụm hôm nay" gộp riêng theo sayLast, cùng cách đó.
    changed = true nghĩa là kết quả khác bản trên cloud, cần đẩy lên lại. */
 function mergeRemote(remoteData){
   const localById = new Map(DATA.map(d=>[d.id, d]));
   let changed = false;
   const merged = remoteData.map(r=>{
     const l = localById.get(r.id);
-    if(l && l.lastReviewed && (!r.lastReviewed || l.lastReviewed > r.lastReviewed)){
+    if(!l) return r;
+    let out = r;
+    if(l.lastReviewed && (!r.lastReviewed || l.lastReviewed > r.lastReviewed)){
       changed = true;
-      return {...r, status:l.status, correct:l.correct, wrong:l.wrong, lastReviewed:l.lastReviewed};
+      out = {...out, status:l.status, correct:l.correct, wrong:l.wrong, lastReviewed:l.lastReviewed};
     }
-    return r;
+    if(l.sayLast && (!r.sayLast || l.sayLast > r.sayLast)){
+      changed = true;
+      out = {...out, sayBox:l.sayBox, sayNext:l.sayNext, sayLast:l.sayLast};
+    }
+    return out;
   });
   return {merged, changed};
 }
@@ -1986,13 +2064,28 @@ function stopMyPlayback(){
   if(myAudio){ try{ myAudio.pause(); }catch(e){} myAudio = null; }
 }
 function playStandard(){ if(lastShadowText) speakText(lastShadowText); }
+/* Ghi xong là tự phát Âm chuẩn rồi Giọng bạn, không phải bấm (anh Phúc, 2026-10-19). Hai nút vẫn còn để nghe lại. */
+function playCompare(){ if(lastShadowText) speakText(lastShadowText, {done: playMine}); }
+/* iPhone chỉ cho thẻ <audio> phát khi có cú chạm. Phát thử (tắt tiếng) ngay trong cú chạm "Đọc theo" để mở khoá một
+   thẻ <audio> dùng chung; ghi xong vài giây sau mới tự phát Giọng bạn bằng chính thẻ đó. */
+let myAudioEl = null;
+function unlockMyAudio(){
+  try{
+    if(!myAudioEl) myAudioEl = new Audio();
+    myAudioEl.muted = true;
+    myAudioEl.src = beepWav();
+    myAudioEl.play().catch(()=>{});
+  }catch(e){}
+}
 function playMine(){
   stopSpeaking();
   const run = myPlayRun;
   let k = 0;
   const step = ()=>{
     if(run !== myPlayRun || k >= myTakes.length){ if(run === myPlayRun) myAudio = null; return; }
-    const a = new Audio(myTakes[k++].url);
+    const a = myAudioEl || new Audio();
+    a.muted = false;
+    a.src = myTakes[k++].url;
     myAudio = a;
     a.onended = ()=>setTimeout(step, 350);
     a.onerror = step;
@@ -2014,7 +2107,7 @@ function speakText(text, opts){
   const run = speakRun;
   const chunks = splitSpeech(text);
   let i = 0;
-  const finishRun = ()=>{ setSpeakUI(null); };
+  const finishRun = ()=>{ setSpeakUI(null); if(opts && opts.done) opts.done(); };
   const later = (ms, fn)=>{ speakTimer = setTimeout(()=>{ if(run === speakRun) fn(); }, ms); };
   const next = ()=>{
     if(run !== speakRun) return;
@@ -2044,12 +2137,16 @@ function speakText(text, opts){
   next();
 }
 /* "Đọc theo" có ghi âm: KHÔNG đọc lại âm chuẩn, bấm là bíp rồi ghi giọng người học ngay.
-   Máy tính: micro mở 1 lần cho cả phiên, giữa các lượt chỉ tắt tiếng. iPhone: đóng hẳn sau mỗi lượt (xem MIC_CLOSE_EACH_TAKE). */
-function shadowRecord(text){
+   Máy tính: micro mở 1 lần cho cả phiên, giữa các lượt chỉ tắt tiếng. iPhone: đóng hẳn sau mỗi lượt (xem MIC_CLOSE_EACH_TAKE).
+   opts (dùng cho Cụm hôm nay): wait = thời gian chờ người học nói (ms), onStart() lúc bắt đầu ghi, onTake() khi có bản ghi,
+   mineOnly = chỉ tự phát Giọng bạn (câu tự đặt, không có âm chuẩn để so). */
+function shadowRecord(text, opts){
+  opts = opts || {};
   stopSpeaking();
   clearTakes();
   lastShadowText = text;
   const run = speakRun;
+  unlockMyAudio();                                 // cũng phải gọi trong cú chạm, để lát nữa tự phát Giọng bạn được
   makeMicContext();                                // phải gọi ngay trong cú chạm (xem makeMicContext)
   setSpeakUI('micwait');
   acquireMic().then(r=>{
@@ -2062,8 +2159,9 @@ function shadowRecord(text){
     playBeep().then(()=>{                          // "bíp" rồi mới ghi
       if(run !== speakRun){ setMicOn(false); return; }
       setSpeakUI('mic');
+      if(opts.onStart) opts.onStart();
       // Thời gian chờ theo độ dài câu (tối thiểu 1,2 giây)
-      const wait = Math.max(1200, text.length * 75 / SPEAK_RATES[speakRateName] + 500);
+      const wait = opts.wait || Math.max(1200, text.length * 75 / SPEAK_RATES[speakRateName] + 500);
       recordTurn(wait + 1200, wait + 4000, blob=>{
         setMicOn(false);
         if(run !== speakRun) return;
@@ -2071,6 +2169,8 @@ function shadowRecord(text){
         if(blob) normalizeTake(blob).then(r=>{
           if(run !== speakRun) return;                 // trong lúc chỉnh âm lượng, anh Phúc đã chuyển thẻ / bấm dừng
           myTakes.push({url: URL.createObjectURL(r.blob), ok: r.ok}); renderTakes();
+          if(opts.onTake) opts.onTake();
+          if(opts.mineOnly) playMine(); else playCompare();
         });
         else showTakes('<span class="take-note">Chưa ghi được giọng bạn. Hãy thử nói to hơn.</span>');
       });
@@ -3284,6 +3384,202 @@ let appStarted = false;
    "Dán từ vựng" với bản xem trước rồi TỰ thêm, không cần bấm (autoPasteWhenReady). Nội dung nằm sau dấu # nên
    không gửi tới máy chủ nào. Việc gộp từ vẫn do pasteImport() làm (không trùng, có chốt cloudReady), Phím tắt
    không ghi thẳng lên cloud. Phải đọc hash ngay lúc tải trang, trước khi nhập PIN. */
+/* ============================================================
+   CỤM HÔM NAY: mỗi lần mở app, luyện nói 1 cụm tới khi nằm lòng (anh Phúc, 2026-10-19)
+   5 bước, khoảng 2 phút: (1) nghe và nói theo, (2) che dần câu ví dụ, (3) chỉ nhìn nghĩa tiếng Việt mà nói ra rồi tự chấm,
+   (4) đổi dạng câu, (5) tự đặt câu về công việc. Chỉ bước 3 được chấm.
+   Tiến độ nằm ngay trong từng mục của DATA nên đồng bộ giữa các máy cùng dữ liệu từ vựng (mergeRemote() giữ bản có
+   sayLast mới hơn): sayBox = số lần "Nói ngay" liên tiếp (hộp Leitner), sayNext = ngày ôn tới YYYY-MM-DD (null khi đã
+   nằm lòng), sayLast = lúc chấm gần nhất. "Nói ngay" lên một hộp và ôn lại sau SAY_GAPS ngày; "Ngập ngừng" giữ hộp,
+   ôn lại ngày mai; "Chưa ra" về hộp 0, ôn lại ngày mai. Nói ngay đủ SAY_DONE lần liên tiếp (ngày 0, 1, 3, 7, 14, 28)
+   là nằm lòng, không hỏi lại nữa.
+============================================================ */
+const SAY_GAPS = [1, 2, 4, 7, 14];
+const SAY_DONE = SAY_GAPS.length + 1;
+const SAY_PICK_KEY = 'tkmb_say_pick';     // cụm đã chọn hôm nay trên máy này: mở lại app vẫn là cụm đó tới khi chấm xong
+const SAY_TWISTS = ['Nói lại câu này ở thì quá khứ', 'Nói lại câu này ở dạng phủ định', 'Biến câu này thành câu hỏi', 'Nói lại câu này với chủ ngữ "We"'];
+let sayId = null, sayStep = 1, sayTakes = 0, sayRated = false, sayRevealed = false, sayTwist = '', sayCountTimer = null;
+
+function sayMastered(d){ return (d.sayBox || 0) >= SAY_DONE; }
+function isPhrase(d){ return String(d.term || '').trim().split(/\s+/).length >= 2; }
+function dayPlus(n){ const d = new Date(); d.setDate(d.getDate() + n); return localDay(d); }
+function saidToday(d){ return !!d.sayLast && localDay(new Date(d.sayLast)) === localDay(new Date()); }
+/* Cụm đến hạn ôn trước (hạn cũ nhất trước). Không có thì lấy cụm mới: ưu tiên cụm nhiều chữ đã "Đã nhớ" và có câu ví dụ,
+   tức là đã nhận ra được nhưng chưa chắc nói ra được. */
+function pickSayItem(){
+  const today = localDay(new Date());
+  const due = DATA.filter(d=>d.type === 'vocab' && d.sayLast && d.sayNext && d.sayNext <= today)
+    .sort((a, b)=>a.sayNext < b.sayNext ? -1 : a.sayNext > b.sayNext ? 1 : 0);
+  if(due.length) return due[0];
+  const fresh = DATA.filter(d=>d.type === 'vocab' && !d.sayLast && String(d.meaning || '').trim());
+  const tiers = [
+    d=>isPhrase(d) && d.status === 'da_nho' && hasExample(d),
+    d=>isPhrase(d) && (d.status === 'da_nho' || d.status === 'trung_binh'),
+    d=>d.status === 'da_nho' && hasExample(d),
+    d=>d.status !== 'new',
+  ];
+  for(const t of tiers){
+    const c = fresh.filter(t);
+    if(c.length) return c[Math.floor(Math.random() * c.length)];
+  }
+  return null;
+}
+function currentSayItem(){
+  const today = localDay(new Date());
+  try{
+    const p = JSON.parse(safeGet(SAY_PICK_KEY) || 'null');
+    const it = p && p.day === today ? DATA.find(d=>d.id === p.id) : null;
+    if(it && !saidToday(it) && !sayMastered(it)) return it;
+  }catch(e){}
+  const it = pickSayItem();
+  if(it) safeSet(SAY_PICK_KEY, JSON.stringify({day: today, id: it.id}));
+  return it;
+}
+function sayItem(){ return DATA.find(d=>d.id === sayId); }
+function sayText(it){ return hasExample(it) ? exampleSpeech(it) : it.term; }
+/* Che dần: mức 1 che một nửa số chữ, mức 2 che hết; chữ bị che chỉ còn chữ cái đầu */
+function sayMasked(text, level){
+  let k = 0;
+  return escapeHtml(text.replace(/[A-Za-z][A-Za-z']*/g, w=>(level === 2 || (level === 1 && k++ % 2 === 1)) ? w[0] + '_'.repeat(w.length - 1) : w));
+}
+function openSay(manual){
+  const it = currentSayItem();
+  if(!it){
+    if(manual) showToast(DATA.some(d=>d.sayLast) ? 'Hôm nay hết cụm cần luyện. Hẹn mai nhé!' : 'Chưa có cụm để luyện: hãy đánh dấu Đã nhớ vài từ trước.');
+    return;
+  }
+  stopSpeaking(); clearTakes();
+  sayId = it.id; sayStep = 1; sayTakes = 0; sayRated = false; sayRevealed = false;
+  sayTwist = SAY_TWISTS[Math.floor(Math.random() * SAY_TWISTS.length)];
+  renderSay();
+  document.getElementById('sayOverlay').classList.add('show');
+}
+function closeSay(){
+  clearInterval(sayCountTimer);
+  stopSpeaking(); clearTakes();
+  document.getElementById('sayOverlay').classList.remove('show');
+}
+function renderSay(){
+  const it = sayItem();
+  if(!it){ closeSay(); return; }
+  const term = escapeHtml(it.term), meaning = escapeHtml(it.meaning || ''), text = sayText(it);
+  const mic = label=>`<button class="speak-small shadow-btn" data-label="${label}" onclick="sayRecord()"><svg class="ic"><use href="#i-mic"/></svg><span>${label}</span></button>`;
+  const ear = `<button class="speak-btn" onclick="sayListen()" aria-label="Nghe"><svg class="ic"><use href="#i-volume"/></svg></button>`;
+  let title, hint, body, actions;
+  if(sayStep === 1){
+    title = 'Nghe rồi nói theo';
+    hint = 'Bấm loa để nghe, rồi bấm Đọc theo. Ghi xong app tự phát âm chuẩn và giọng của bạn.';
+    body = `<div class="say-term">${term}</div>${it.phonetic ? `<div class="phonetic">${escapeHtml(it.phonetic)}</div>` : ''}<div class="say-meaning">${meaning}</div>`;
+    actions = ear + mic('Đọc theo');
+  } else if(sayStep === 2){
+    title = 'Che dần';
+    hint = sayTakes >= 3 ? 'Xong bước này, bấm Tiếp.' : `Đọc câu dưới đây. Mỗi lần đọc xong, app che bớt chữ (lượt ${sayTakes + 1}/3).`;
+    body = `<div class="say-sentence">${sayMasked(text, Math.min(sayTakes, 2))}</div>`;
+    actions = ear + mic('Đọc theo');
+  } else if(sayStep === 3){
+    title = 'Nhớ ra từ nghĩa tiếng Việt';
+    hint = 'Bấm Nói, nghe bíp là nói cụm tiếng Anh. Cố nói trong 3 giây.';
+    body = `<div class="say-meaning">${meaning}</div><div class="say-count" id="sayCount"></div>${sayRevealed ? `<div class="say-term">${term}</div>` : ''}`;
+    actions = mic('Nói') + (sayRevealed ? '' : '<button class="speak-small" onclick="sayReveal()">Hiện đáp án</button>');
+  } else if(sayStep === 4){
+    title = 'Đổi dạng';
+    hint = (hasExample(it) ? sayTwist : 'Đặt một câu hỏi có dùng cụm này') + '. Nói xong app phát lại giọng của bạn.';
+    body = hasExample(it) ? `<div class="say-sentence">${escapeHtml(text)}</div>` : `<div class="say-term">${term}</div>`;
+    actions = mic('Nói');
+  } else {
+    title = 'Câu của tôi';
+    hint = 'Nói 1 câu về công việc của bạn hôm nay có dùng cụm này.';
+    body = `<div class="say-term">${term}</div><div class="say-meaning">${meaning}</div>`;
+    actions = mic('Nói');
+  }
+  const box = it.sayBox || 0;
+  document.getElementById('sayTag').textContent = it.sayLast ? `Tiến độ ${box}/${SAY_DONE}` : 'Cụm mới';
+  document.getElementById('sayStepNo').textContent = `Bước ${sayStep}/5`;
+  document.getElementById('sayTitle').textContent = title;
+  document.getElementById('sayHint').textContent = hint;
+  document.getElementById('sayBody').innerHTML = body;
+  document.getElementById('sayActions').innerHTML = actions;
+  let rate = '';
+  if(sayStep === 3 && sayRated){
+    const [, m, d] = (it.sayNext || '').split('-');
+    rate = `<span class="muted">${sayMastered(it) ? 'Nằm lòng rồi! Cụm này không hỏi lại nữa.' : `Đã lưu. Ôn lại ngày ${+d}/${+m}.`}</span>`;
+  } else if(sayStep === 3 && sayRevealed){
+    rate = '<button class="btn btn-green btn-sm" onclick="sayRate(\'ok\')">Nói ngay</button>'
+      + '<button class="btn btn-soft btn-sm" onclick="sayRate(\'slow\')">Ngập ngừng</button>'
+      + '<button class="btn btn-red btn-sm" onclick="sayRate(\'no\')">Chưa ra</button>';
+  }
+  document.getElementById('sayRate').innerHTML = rate;
+  const next = document.getElementById('sayNextBtn');
+  next.textContent = sayStep === 5 ? 'Xong' : 'Tiếp';
+  next.disabled = sayStep === 3 && !sayRated;
+}
+function sayListen(){
+  const it = sayItem();
+  if(it) speakText(sayStep === 2 ? sayText(it) : it.term);
+}
+function sayReveal(){
+  sayRevealed = true;
+  renderSay();
+  const it = sayItem();
+  if(it) speakText(it.term);
+}
+function sayRecord(){
+  if(speakShadowOn){ stopSpeaking(); return; }
+  const it = sayItem();
+  if(!it) return;
+  if(!(speakRecordOn && micSupported())){
+    // Không ghi âm được (hoặc đã tắt Ghi âm trong Cài đặt): vẫn nói to được, app chỉ không phát lại giọng
+    showTakes('<span class="take-note">Máy này đang không ghi âm. Cứ nói to, rồi bấm Tiếp.</span>');
+    if(sayStep === 2){ sayTakes++; renderSay(); }
+    if(sayStep === 3) sayReveal();
+    return;
+  }
+  const opts = {};
+  let text = it.term;
+  if(sayStep === 2){ text = sayText(it); opts.onTake = ()=>{ sayTakes++; renderSay(); }; }
+  if(sayStep === 3){
+    opts.wait = 3000;
+    opts.onTake = ()=>{ sayRevealed = true; renderSay(); };
+    opts.onStart = ()=>{
+      let n = 3;
+      const show = ()=>{ const el = document.getElementById('sayCount'); if(el) el.textContent = n > 0 ? n : ''; };
+      show();
+      clearInterval(sayCountTimer);
+      sayCountTimer = setInterval(()=>{ n--; show(); if(n <= 0) clearInterval(sayCountTimer); }, 1000);
+    };
+  }
+  if(sayStep >= 4){ text = sayStep === 4 ? sayText(it) : it.term; opts.mineOnly = true; opts.wait = 6000; }
+  shadowRecord(text, opts);
+}
+function sayRate(level){
+  const it = sayItem();
+  if(!it || sayRated) return;
+  let box = it.sayBox || 0;
+  if(level === 'ok') box++;
+  else if(level === 'no') box = 0;
+  it.sayBox = box;
+  it.sayNext = box >= SAY_DONE ? null : dayPlus(level === 'ok' ? SAY_GAPS[box - 1] : 1);
+  it.sayLast = new Date().toISOString();
+  saveData();
+  logActivity('card');
+  sayRated = true;
+  renderSay();
+}
+function sayGoNext(){
+  if(sayStep === 3 && !sayRated) return;
+  clearInterval(sayCountTimer);
+  stopSpeaking(); clearTakes();
+  if(sayStep >= 5){
+    closeSay();
+    launchConfetti();
+    showToast('Xong cụm hôm nay!');
+    return;
+  }
+  sayStep++;
+  sayTakes = 0;
+  renderSay();
+}
+
 let pendingPasteText = null;
 function takePasteFromHash(){
   const m = /^#paste=([\s\S]*)$/.exec(location.hash);
@@ -3333,11 +3629,19 @@ window.addEventListener('hashchange', ()=>{
 function unlockApp(){
   const gate = document.getElementById('pinGate');
   if(gate) gate.remove();
-  if(appStarted){ showPendingPaste(); return; }   // mở khoá lại sau khi bị khoá: dữ liệu đã nạp, không khởi động lần hai
-  appStarted = true;
-  startApp();
+  const fromLink = pendingPasteText !== null;     // mở từ link Phím tắt: để cửa sổ dán từ, không hiện Cụm hôm nay
+  if(!appStarted){ appStarted = true; startApp(); }   // đã khởi động rồi thì không khởi động lần hai
   showPendingPaste();
+  if(!fromLink) openSay(false);
 }
+/* Quay lại app sau khi để nền từ 5 phút trở lên (Safari giữ trang, không tải lại) cũng tính là "mở app": hiện Cụm hôm nay */
+const SAY_REOPEN_AFTER_MS = 5 * 60 * 1000;
+let hiddenAt = 0;
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'hidden'){ hiddenAt = Date.now(); return; }
+  if(appStarted && hiddenAt && Date.now() - hiddenAt >= SAY_REOPEN_AFTER_MS && !document.getElementById('sayOverlay').classList.contains('show')) openSay(false);
+  hiddenAt = 0;
+});
 /* Bàn phím số kiểu iPhone: nhập đủ PIN_LENGTH số là tự kiểm tra */
 const PIN_LENGTH = 4;
 let pinEntry = '';
