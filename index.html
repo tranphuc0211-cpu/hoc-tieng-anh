@@ -2066,6 +2066,17 @@ function stopMyPlayback(){
 function playStandard(){ if(lastShadowText) speakText(lastShadowText); }
 /* Ghi xong là tự phát Âm chuẩn rồi Giọng bạn, không phải bấm (anh Phúc, 2026-10-19). Hai nút vẫn còn để nghe lại. */
 function playCompare(){ if(lastShadowText) speakText(lastShadowText, {done: playMine}); }
+/* Cũng vậy với giọng đọc máy: Safari trên iPhone bỏ qua speechSynthesis.speak() không nằm trong cú chạm nếu trang chưa
+   đọc lần nào trong cú chạm, nên ghi xong chỉ nghe được Giọng bạn, mất Âm chuẩn (anh Phúc, 2026-10-20). Đọc một câu rỗng,
+   tắt tiếng ngay trong cú chạm "Đọc theo" để mở khoá. */
+function unlockSpeech(){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
 /* iPhone chỉ cho thẻ <audio> phát khi có cú chạm. Phát thử (tắt tiếng) ngay trong cú chạm "Đọc theo" để mở khoá một
    thẻ <audio> dùng chung; ghi xong vài giây sau mới tự phát Giọng bạn bằng chính thẻ đó. */
 let myAudioEl = null;
@@ -2147,6 +2158,7 @@ function shadowRecord(text, opts){
   lastShadowText = text;
   const run = speakRun;
   unlockMyAudio();                                 // cũng phải gọi trong cú chạm, để lát nữa tự phát Giọng bạn được
+  unlockSpeech();                                  // và để lát nữa tự đọc Âm chuẩn được
   makeMicContext();                                // phải gọi ngay trong cú chạm (xem makeMicContext)
   setSpeakUI('micwait');
   acquireMic().then(r=>{
