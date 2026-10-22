@@ -3541,20 +3541,20 @@ function renderSay(){
   const ear = `<button class="speak-btn" onclick="sayListen()" aria-label="Nghe"><svg class="ic"><use href="#i-volume"/></svg></button>`;
   let title, hint, body, actions;
   if(sayStep === 1){
-    title = 'Nghe rồi nói theo';
-    hint = 'Bấm loa để nghe, rồi bấm Đọc theo. Ghi xong app tự phát âm chuẩn và giọng của bạn.';
-    body = `<div class="say-term">${term}</div>${it.phonetic ? `<div class="phonetic">${escapeHtml(it.phonetic)}</div>` : ''}<div class="say-meaning">${meaning}</div>`;
-    actions = ear + mic('Đọc theo');
-  } else if(sayStep === 2){
-    title = 'Che dần';
-    hint = sayTakes >= 3 ? 'Xong bước này, bấm Tiếp.' : `Đọc câu dưới đây. Mỗi lần đọc xong, app che bớt chữ (lượt ${sayTakes + 1}/3).`;
-    body = `<div class="say-sentence">${sayMasked(text, Math.min(sayTakes, 2))}</div>`;
-    actions = ear + mic('Đọc theo');
-  } else if(sayStep === 3){
     title = 'Nhớ ra từ nghĩa tiếng Việt';
     hint = 'Bấm Nói, nghe bíp là nói cụm tiếng Anh. Cố nói trong 3 giây.';
     body = `<div class="say-meaning">${meaning}</div><div class="say-count" id="sayCount"></div>${sayRevealed ? `<div class="say-term">${term}</div>` : ''}`;
     actions = mic('Nói') + (sayRevealed ? '' : '<button class="speak-small" onclick="sayReveal()">Hiện đáp án</button>');
+  } else if(sayStep === 2){
+    title = 'Nghe rồi nói theo';
+    hint = 'Bấm loa để nghe, rồi bấm Đọc theo. Ghi xong app tự phát âm chuẩn và giọng của bạn.';
+    body = `<div class="say-term">${term}</div>${it.phonetic ? `<div class="phonetic">${escapeHtml(it.phonetic)}</div>` : ''}<div class="say-meaning">${meaning}</div>`;
+    actions = ear + mic('Đọc theo');
+  } else if(sayStep === 3){
+    title = 'Che dần';
+    hint = sayTakes >= 3 ? 'Xong bước này, bấm Tiếp.' : `Đọc câu dưới đây. Mỗi lần đọc xong, app che bớt chữ (lượt ${sayTakes + 1}/3).`;
+    body = `<div class="say-sentence">${sayMasked(text, Math.min(sayTakes, 2))}</div>`;
+    actions = ear + mic('Đọc theo');
   } else if(sayStep === 4){
     title = 'Đổi dạng';
     hint = (hasExample(it) ? sayTwist : 'Đặt một câu hỏi có dùng cụm này') + '. Nói xong bấm Dừng, app phát lại giọng của bạn.';
@@ -3574,10 +3574,10 @@ function renderSay(){
   document.getElementById('sayBody').innerHTML = body;
   document.getElementById('sayActions').innerHTML = actions;
   let rate = '';
-  if(sayStep === 3 && sayRated){
+  if(sayStep === 1 && sayRated){
     const [, m, d] = (it.sayNext || '').split('-');
     rate = `<span class="muted">${sayMastered(it) ? 'Nằm lòng rồi! Cụm này không hỏi lại nữa.' : `Đã lưu. Ôn lại ngày ${+d}/${+m}.`}</span>`;
-  } else if(sayStep === 3 && sayRevealed){
+  } else if(sayStep === 1 && sayRevealed){
     rate = '<button class="btn btn-green btn-sm" onclick="sayRate(\'ok\')">Nói ngay</button>'
       + '<button class="btn btn-soft btn-sm" onclick="sayRate(\'slow\')">Ngập ngừng</button>'
       + '<button class="btn btn-red btn-sm" onclick="sayRate(\'no\')">Chưa ra</button>';
@@ -3585,11 +3585,11 @@ function renderSay(){
   document.getElementById('sayRate').innerHTML = rate;
   const next = document.getElementById('sayNextBtn');
   next.textContent = sayStep === 5 ? 'Xong' : 'Tiếp';
-  next.disabled = sayStep === 3 && !sayRated;
+  next.disabled = sayStep === 1 && !sayRated;
 }
 function sayListen(){
   const it = sayItem();
-  if(it) speakText(sayStep === 2 ? sayText(it) : it.term);
+  if(it) speakText(sayStep === 3 ? sayText(it) : it.term);
 }
 function sayReveal(){
   sayRevealed = true;
@@ -3607,14 +3607,14 @@ function sayRecord(){
   if(!(speakRecordOn && micSupported())){
     // Không ghi âm được (hoặc đã tắt Ghi âm trong Cài đặt): vẫn nói to được, app chỉ không phát lại giọng
     showTakes('<span class="take-note">Máy này đang không ghi âm. Cứ nói to, rồi bấm Tiếp.</span>');
-    if(sayStep === 2){ sayTakes++; renderSay(); }
-    if(sayStep === 3) sayReveal();
+    if(sayStep === 3){ sayTakes++; renderSay(); }
+    if(sayStep === 1) sayReveal();
     return;
   }
   const opts = {};
   let text = it.term;
-  if(sayStep === 2){ text = sayText(it); opts.onTake = ()=>{ sayTakes++; renderSay(); }; }
-  if(sayStep === 3){
+  if(sayStep === 3){ text = sayText(it); opts.onTake = ()=>{ sayTakes++; renderSay(); }; }
+  if(sayStep === 1){
     opts.wait = 3000;
     opts.onTake = ()=>{ sayRevealed = true; renderSay(); };
     opts.onStart = ()=>{
@@ -3646,7 +3646,7 @@ function sayRate(level){
   renderSayEntry();
 }
 function sayGoNext(){
-  if(sayStep === 3 && !sayRated) return;
+  if(sayStep === 1 && !sayRated) return;
   clearInterval(sayCountTimer);
   stopSpeaking(); clearTakes();
   if(sayStep >= 5){
