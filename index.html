@@ -545,8 +545,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
                 <div class="meaning" id="fcMeaningBack"></div>
                 <div class="phonetic" id="fcPhoneticBack" style="display:none;"></div>
                 <div class="speak-actions" id="fcSpeakActionsBack" style="display:none;margin-bottom:12px;">
-                  <button class="speak-btn" onclick="event.stopPropagation();fcSpeak()" aria-label="Nghe phát âm"><svg class="ic"><use href="#i-volume"/></svg></button>
-                  <button class="speak-small shadow-btn" data-label="Đọc theo từ" onclick="event.stopPropagation();fcShadow('term')"><svg class="ic"><use href="#i-mic"/></svg><span>Đọc theo từ</span></button>
+                  <button class="speak-btn" onclick="event.stopPropagation();fcSpeak('back')" aria-label="Nghe phát âm"><svg class="ic"><use href="#i-volume"/></svg></button>
+                  <button class="speak-small shadow-btn" data-label="Đọc theo từ" onclick="event.stopPropagation();fcShadow('back')"><svg class="ic"><use href="#i-mic"/></svg><span>Đọc theo từ</span></button>
                 </div>
                 <div class="example" id="fcExampleBack"></div>
                 <div class="speak-row" id="fcSpeakExampleRow">
@@ -1687,7 +1687,7 @@ function renderFlashcard(){
   const phoBack = document.getElementById('fcPhoneticBack');
   phoBack.textContent = vi ? (item.phonetic || '') : '';
   phoBack.style.display = vi && item.phonetic ? '' : 'none';
-  document.getElementById('fcSpeakActionsBack').style.display = vi ? '' : 'none';
+  document.getElementById('fcSpeakActionsBack').style.display = vi || verbFormsSpeech(item) ? '' : 'none';
   document.getElementById('fcExampleBack').textContent = item.example || '';
   document.getElementById('fcSpeakExampleRow').style.display = item.example ? '' : 'none';
   // Nội dung dài (thường là ngữ pháp) -> giảm cỡ chữ để vừa thẻ
@@ -2217,13 +2217,21 @@ function shadowRecord(text, opts){
     });
   });
 }
-function fcSpeak(){
+function fcSpeak(side){
   const item = fcList[fcIndex];
-  if(item) speakText(item.term);
+  if(item) speakText(side==='back' && verbFormsSpeech(item) || item.term);
 }
 /* Câu ví dụ để đọc; với ngữ pháp thì điền đáp án vào chỗ trống ___ trước */
 function exampleSpeech(item){
   return item.type==='grammar' && item.blank ? item.example.replace(/_{2,}/, item.blank) : item.example;
+}
+/* Động từ bất quy tắc (file Dong_tu_bat_quy_tac.xlsx): Nghĩa = "V2 /…/ – V3 /…/ · nghĩa"
+   -> đọc "V1, V2, V3" (bỏ phiên âm /…/ và ghi chú trong ngoặc). Mục khác -> '' */
+function verbFormsSpeech(item){
+  const m = item.type==='grammar' && String(item.meaning||'').match(/^(.+?) – (.+?) · /);
+  if(!m) return '';
+  const clean = s => s.replace(/\/[^\/]*\//g, '').replace(/\([^)]*\)/g, '').replace(/\s+,/g, ',').replace(/\s+/g, ' ').trim();
+  return [item.term, clean(m[1]), clean(m[2])].join(', ');
 }
 function fcSpeakExample(){
   const item = fcList[fcIndex];
@@ -2235,7 +2243,7 @@ function fcShadow(which){
   if(speakShadowOn){ stopSpeaking(); clearTakes(); return; }
   const item = fcList[fcIndex];
   if(!item) return;
-  const text = which === 'term' ? item.term : (item.example ? exampleSpeech(item) : '');
+  const text = which === 'back' ? (verbFormsSpeech(item) || item.term) : which === 'term' ? item.term : (item.example ? exampleSpeech(item) : '');
   if(!text) return;
   if(speakRecordOn && micSupported()) shadowRecord(text);
   else speakText(text, {shadow:true});
@@ -2527,7 +2535,7 @@ function makeQuestion(item, mode){
   }
   if(qType==='grammar_fill'){
     return {qType:'text', item, question:`Điền vào chỗ trống (${item.term}):`, sub:item.example, answer:item.blank,
-            speak:(item.example||'').replace(/_{2,}/, item.blank)};
+            speak:[verbFormsSpeech(item), (item.example||'').replace(/_{2,}/, item.blank)].filter(Boolean).join('. ')};
   }
   return null;
 }
