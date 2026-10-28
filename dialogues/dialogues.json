@@ -1,0 +1,1387 @@
+{
+ "v": 1,
+ "lessons": [
+  {
+   "id": "life-busy-week",
+   "topic": "Đời sống",
+   "title": "A busy week",
+   "desc": "Sáng Chủ nhật, Mike gặp Emma, cô hàng xóm, lúc đi dạo.",
+   "speakers": {
+    "EMMA": "Emma",
+    "MIKE": "Mike"
+   },
+   "lines": [
+    {
+     "who": "EMMA",
+     "s": [
+      {
+       "m": "**Morn**ing, Mike! ↗ / You look **tired**. ↘",
+       "t": "Morning, Mike! You look tired.",
+       "a": "dialogues/life-busy-week/01.mp3",
+       "d": 1.92
+      },
+      {
+       "m": "Is everything **o**kay? ↗",
+       "t": "Is everything okay?",
+       "a": "dialogues/life-busy-week/02.mp3",
+       "d": 1.19
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "To be **hon**est, ↗ / I've been {**slammed**|be slammed} at work all **week**. ↘",
+       "t": "To be honest, I've been slammed at work all week.",
+       "a": "dialogues/life-busy-week/03.mp3",
+       "d": 2.96
+      },
+      {
+       "m": "I {**hard**ly **ev**er|hardly ever} get home before **eight**. ↘",
+       "t": "I hardly ever get home before eight.",
+       "a": "dialogues/life-busy-week/04.mp3",
+       "d": 2.27
+      }
+     ]
+    },
+    {
+     "who": "EMMA",
+     "s": [
+      {
+       "m": "Oh **no**. ↘",
+       "t": "Oh no.",
+       "a": "dialogues/life-busy-week/05.mp3",
+       "d": 0.71
+      },
+      {
+       "m": "Is the {**com**mute|Commute} still that **bad**? ↗",
+       "t": "Is the commute still that bad?",
+       "a": "dialogues/life-busy-week/06.mp3",
+       "d": 1.53
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "It's **ter**rible. ↘",
+       "t": "It's terrible.",
+       "a": "dialogues/life-busy-week/07.mp3",
+       "d": 1.05
+      },
+      {
+       "m": "The roads are so {con**gest**ed|congested}, ↗ / I got {**stuck**|stuck} in a {**traf**fic jam|traffic jam} for an **hour** yesterday. ↘",
+       "t": "The roads are so congested, I got stuck in a traffic jam for an hour yesterday.",
+       "a": "dialogues/life-busy-week/08.mp3",
+       "d": 5.35
+      }
+     ]
+    },
+    {
+     "who": "EMMA",
+     "s": [
+      {
+       "m": "{That's **why**|That’s why} I {**go** for a **walk**|Go for a walk} every **morn**ing. ↘",
+       "t": "That's why I go for a walk every morning.",
+       "a": "dialogues/life-busy-week/09.mp3",
+       "d": 2.19
+      },
+      {
+       "m": "It helps me {deal with **stress**|Deal with stress}. ↘",
+       "t": "It helps me deal with stress.",
+       "a": "dialogues/life-busy-week/10.mp3",
+       "d": 1.57
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "I **should** do that, too. ↘",
+       "t": "I should do that, too.",
+       "a": "dialogues/life-busy-week/11.mp3",
+       "d": 1.34
+      },
+      {
+       "m": "But I never have any {**spare** time|Spare time}. ↘",
+       "t": "But I never have any spare time.",
+       "a": "dialogues/life-busy-week/12.mp3",
+       "d": 1.9
+      }
+     ]
+    },
+    {
+     "who": "EMMA",
+     "s": [
+      {
+       "m": "You don't need a **lot**. ↘",
+       "t": "You don't need a lot.",
+       "a": "dialogues/life-busy-week/13.mp3",
+       "d": 1.1
+      },
+      {
+       "m": "Just **fif**teen minutes a **day**. ↘",
+       "t": "Just fifteen minutes a day.",
+       "a": "dialogues/life-busy-week/14.mp3",
+       "d": 1.48
+      },
+      {
+       "m": "It's {the **eas**iest thing|The easiest thing} you can do / for your {**men**tal **health**|mental health}. ↘",
+       "t": "It's the easiest thing you can do for your mental health.",
+       "a": "dialogues/life-busy-week/15.mp3",
+       "d": 2.75
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "**Fif**teen minutes? ↗",
+       "t": "Fifteen minutes?",
+       "a": "dialogues/life-busy-week/16.mp3",
+       "d": 1.21
+      },
+      {
+       "m": "Okay, ↗ / {I **guess**|I guess} I can **try** that. ↘",
+       "t": "Okay, I guess I can try that.",
+       "a": "dialogues/life-busy-week/17.mp3",
+       "d": 1.95
+      }
+     ]
+    },
+    {
+     "who": "EMMA",
+     "s": [
+      {
+       "m": "And try to {get some **rest**|Get some rest} on the **week**ends. ↘",
+       "t": "And try to get some rest on the weekends.",
+       "a": "dialogues/life-busy-week/18.mp3",
+       "d": 2.2
+      },
+      {
+       "m": "No **lap**top, ↗ / no **e**mails. ↘",
+       "t": "No laptop, no emails.",
+       "a": "dialogues/life-busy-week/19.mp3",
+       "d": 1.71
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "That's the **hard** part. ↘",
+       "t": "That's the hard part.",
+       "a": "dialogues/life-busy-week/20.mp3",
+       "d": 1.33
+      },
+      {
+       "m": "I {feel **stressed**|Feel stressed} / when I'm not **check**ing my **phone**. ↘",
+       "t": "I feel stressed when I'm not checking my phone.",
+       "a": "dialogues/life-busy-week/21.mp3",
+       "d": 2.53
+      }
+     ]
+    },
+    {
+     "who": "EMMA",
+     "s": [
+      {
+       "m": "I **know** the feeling. ↘",
+       "t": "I know the feeling.",
+       "a": "dialogues/life-busy-week/22.mp3",
+       "d": 1.03
+      },
+      {
+       "m": "But you have to {**break** that **hab**it|Break a habit}. ↘",
+       "t": "But you have to break that habit.",
+       "a": "dialogues/life-busy-week/23.mp3",
+       "d": 1.68
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "You're **right**. ↘",
+       "t": "You're right.",
+       "a": "dialogues/life-busy-week/24.mp3",
+       "d": 0.89
+      },
+      {
+       "m": "So, ↗ / what's your {**main hob**by|Main hobby} these days? ↘",
+       "t": "So, what's your main hobby these days?",
+       "a": "dialogues/life-busy-week/25.mp3",
+       "d": 2.34
+      }
+     ]
+    },
+    {
+     "who": "EMMA",
+     "s": [
+      {
+       "m": "{**Roll**erblading|Rollerblading}! ↘",
+       "t": "Rollerblading!",
+       "a": "dialogues/life-busy-week/26.mp3",
+       "d": 0.97
+      },
+      {
+       "m": "There's a **park** / near the **riv**er. ↘",
+       "t": "There's a park near the river.",
+       "a": "dialogues/life-busy-week/27.mp3",
+       "d": 1.41
+      },
+      {
+       "m": "{Do you want to come a**long**?|Do you want to come along?} ↗",
+       "t": "Do you want to come along?",
+       "a": "dialogues/life-busy-week/28.mp3",
+       "d": 1.28
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "{I'd **love** to|I'd love to}. ↘",
+       "t": "I'd love to.",
+       "a": "dialogues/life-busy-week/29.mp3",
+       "d": 1.11
+      },
+      {
+       "m": "But I haven't done it in **years**. ↘",
+       "t": "But I haven't done it in years.",
+       "a": "dialogues/life-busy-week/30.mp3",
+       "d": 1.91
+      },
+      {
+       "m": "I don't want to get {**hurt**|hurt}. ↘",
+       "t": "I don't want to get hurt.",
+       "a": "dialogues/life-busy-week/31.mp3",
+       "d": 1.45
+      }
+     ]
+    },
+    {
+     "who": "EMMA",
+     "s": [
+      {
+       "m": "{Don't be **scared**|Don't be scared}! ↘",
+       "t": "Don't be scared!",
+       "a": "dialogues/life-busy-week/32.mp3",
+       "d": 0.93
+      },
+      {
+       "m": "I'll **teach** you. ↘",
+       "t": "I'll teach you.",
+       "a": "dialogues/life-busy-week/33.mp3",
+       "d": 0.95
+      },
+      {
+       "m": "You'll {make **prog**ress|Make progress} **fast**. ↘",
+       "t": "You'll make progress fast.",
+       "a": "dialogues/life-busy-week/34.mp3",
+       "d": 1.48
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "Okay, ↗ / **deal**. ↘",
+       "t": "Okay, deal.",
+       "a": "dialogues/life-busy-week/35.mp3",
+       "d": 1.08
+      },
+      {
+       "m": "And {after **that**|And then / after that}, ↗ / I'll {**brew** a **cof**fee|Brew a coffee} for us, ↗ / with {**con**densed **milk**|Condensed milk}. ↘",
+       "t": "And after that, I'll brew a coffee for us, with condensed milk.",
+       "a": "dialogues/life-busy-week/36.mp3",
+       "d": 3.72
+      }
+     ]
+    },
+    {
+     "who": "EMMA",
+     "s": [
+      {
+       "m": "**Viet**namese coffee? ↗",
+       "t": "Vietnamese coffee?",
+       "a": "dialogues/life-busy-week/37.mp3",
+       "d": 1.26
+      },
+      {
+       "m": "{**Def**initely|Definitely}! ↘",
+       "t": "Definitely!",
+       "a": "dialogues/life-busy-week/38.mp3",
+       "d": 0.81
+      },
+      {
+       "m": "See you on **Sat**urday! ↘",
+       "t": "See you on Saturday!",
+       "a": "dialogues/life-busy-week/39.mp3",
+       "d": 1.23
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "work-factory-visit",
+   "topic": "Công việc",
+   "title": "Factory visit",
+   "desc": "Sarah, người mua hàng của một hãng snack Mỹ, đến thăm nhà máy và bàn đơn túi mới với Mike, trưởng phòng kế hoạch.",
+   "speakers": {
+    "SARAH": "Sarah",
+    "MIKE": "Mike"
+   },
+   "lines": [
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "Hi, **Mike**! ↗ / Thanks for **hav**ing me. ↘",
+       "t": "Hi, Mike! Thanks for having me.",
+       "a": "dialogues/work-factory-visit/01.mp3",
+       "d": 1.83
+      },
+      {
+       "m": "{To be **hon**est|To be Honest}, ↗ / I was a **lit**tle {**jet** lagged|jet lagged} this **morn**ing… ↗ / but {I'm **all** set‿now|you are all set}. ↘",
+       "t": "To be honest, I was a little jet lagged this morning… but I'm all set now.",
+       "a": "dialogues/work-factory-visit/02.mp3",
+       "d": 4.24
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "**Wel**come to our **plant**! ↘",
+       "t": "Welcome to our plant!",
+       "a": "dialogues/work-factory-visit/03.mp3",
+       "d": 1.43
+      },
+      {
+       "m": "{Take your **time**|Take your time}. ↘ / Would you **like** some **cof**fee / before we **start**? ↗",
+       "t": "Take your time. Would you like some coffee before we start?",
+       "a": "dialogues/work-factory-visit/04.mp3",
+       "d": 3.49
+      },
+      {
+       "m": "We have {**ground** coffee|ground coffee}, ↗ / or {coffee sa**chets**|Coffee sachets}. ↘",
+       "t": "We have ground coffee, or coffee sachets.",
+       "a": "dialogues/work-factory-visit/05.mp3",
+       "d": 2.65
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "Oh, {I'd **love** to|I'd love to}. ↘",
+       "t": "Oh, I'd love to.",
+       "a": "dialogues/work-factory-visit/06.mp3",
+       "d": 1.22
+      },
+      {
+       "m": "So, ↗ / let me get {**straight**|Straight} to the **point**. ↘",
+       "t": "So, let me get straight to the point.",
+       "a": "dialogues/work-factory-visit/07.mp3",
+       "d": 1.94
+      },
+      {
+       "m": "Our **new** snack bag / has to be on the **shelves** / in **March**. ↘",
+       "t": "Our new snack bag has to be on the shelves in March.",
+       "a": "dialogues/work-factory-visit/08.mp3",
+       "d": 2.98
+      },
+      {
+       "m": "Can you {**meet** that **dead**line|Meet a deadline}? ↗",
+       "t": "Can you meet that deadline?",
+       "a": "dialogues/work-factory-visit/09.mp3",
+       "d": 1.49
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "I **think** so. ↘",
+       "t": "I think so.",
+       "a": "dialogues/work-factory-visit/10.mp3",
+       "d": 1.03
+      },
+      {
+       "m": "But it {de**pends**‿on|depends on} the {**art**work|artwork / repro}. ↘",
+       "t": "But it depends on the artwork.",
+       "a": "dialogues/work-factory-visit/11.mp3",
+       "d": 1.8
+      },
+      {
+       "m": "Once you {ap**prove**|approve} the **fi**nal {**proof**|proofing / proof print}, ↗ / we can start {en**grav**ing the **cyl**inders|engraved cylinder} / right a**way**. ↘",
+       "t": "Once you approve the final proof, we can start engraving the cylinders right away.",
+       "a": "dialogues/work-factory-visit/12.mp3",
+       "d": 5.03
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "Okay. ↘ / And what's the {**lead** time|lead time}, / **rough**ly? ↘",
+       "t": "Okay. And what's the lead time, roughly?",
+       "a": "dialogues/work-factory-visit/13.mp3",
+       "d": 2.23
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "A**bout** three **weeks**. ↘",
+       "t": "About three weeks.",
+       "a": "dialogues/work-factory-visit/14.mp3",
+       "d": 1.34
+      },
+      {
+       "m": "**One** week for the **cyl**inders, ↗ / and **two** weeks for **print**ing, ↗ / **lam**inating, ↗ / and **mak**ing the **bags**. ↘",
+       "t": "One week for the cylinders, and two weeks for printing, laminating, and making the bags.",
+       "a": "dialogues/work-factory-visit/15.mp3",
+       "d": 5.35
+      },
+      {
+       "m": "{That's **why**|That’s why} / we need the artwork {in ad**vance**|in advance}. ↘",
+       "t": "That's why we need the artwork in advance.",
+       "a": "dialogues/work-factory-visit/16.mp3",
+       "d": 2.4
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "{That makes **sense**|make sense}. ↘",
+       "t": "That makes sense.",
+       "a": "dialogues/work-factory-visit/17.mp3",
+       "d": 1.07
+      },
+      {
+       "m": "And what a**bout** **col**or? ↗",
+       "t": "And what about color?",
+       "a": "dialogues/work-factory-visit/18.mp3",
+       "d": 1.19
+      },
+      {
+       "m": "**Last** year, / our **old** {sup**pli**er|supplier} had a **prob**lem with {**mis**register|misregister}… ↗ / and the **col**ors were {**slight**ly|Slightly} **off**. ↘",
+       "t": "Last year, our old supplier had a problem with misregister… and the colors were slightly off.",
+       "a": "dialogues/work-factory-visit/19.mp3",
+       "d": 5.45
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "I under**stand** your {con**cern**|concern}. ↘",
+       "t": "I understand your concern.",
+       "a": "dialogues/work-factory-visit/20.mp3",
+       "d": 1.73
+      },
+      {
+       "m": "Our **press**es have {auto **reg**ister con**trol**|auto register control}, ↗ / and we **check** every **roll** / with a {**line** scan **cam**era|camera / line scan camera}. ↘",
+       "t": "Our presses have auto register control, and we check every roll with a line scan camera.",
+       "a": "dialogues/work-factory-visit/21.mp3",
+       "d": 5.71
+      },
+      {
+       "m": "So, / de**fects** are **much** easier to {**catch**|Catch / Caught / caught}. ↘",
+       "t": "So, defects are much easier to catch.",
+       "a": "dialogues/work-factory-visit/22.mp3",
+       "d": 2.37
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "**Good**. ↘ / And {**col**or **match**ing|colour matching}? ↗",
+       "t": "Good. And color matching?",
+       "a": "dialogues/work-factory-visit/23.mp3",
+       "d": 1.48
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "We **meas**ure **ev**ery color / with a {spectropho**tom**eter|spectrophotometer}. ↘",
+       "t": "We measure every color with a spectrophotometer.",
+       "a": "dialogues/work-factory-visit/24.mp3",
+       "d": 2.98
+      },
+      {
+       "m": "If the {**Del**ta **E**|Delta E (ΔE)} is too **high**, ↗ / we ad**just** the {**ink** formula|ink formula / recipe} / be**fore** we **run**. ↘",
+       "t": "If the Delta E is too high, we adjust the ink formula before we run.",
+       "a": "dialogues/work-factory-visit/25.mp3",
+       "d": 4.76
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "**Great**. ↘ / But {**not** only **that**|Not only that}. ↘",
+       "t": "Great. But not only that.",
+       "a": "dialogues/work-factory-visit/26.mp3",
+       "d": 1.58
+      },
+      {
+       "m": "We **al**so ex**port** to **Eu**rope, ↗ / so we need {**low** migration **ink**|low migration ink}, ↗ / and **full** {tracea**bil**ity|traceability}. ↘",
+       "t": "We also export to Europe, so we need low migration ink, and full traceability.",
+       "a": "dialogues/work-factory-visit/27.mp3",
+       "d": 4.98
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "No **prob**lem. ↘",
+       "t": "No problem.",
+       "a": "dialogues/work-factory-visit/28.mp3",
+       "d": 1.12
+      },
+      {
+       "m": "**Ev**ery roll has a **code**, ↗ / so you can **trace** it **back** / to the e**xact** {**shift**|shift}. ↘",
+       "t": "Every roll has a code, so you can trace it back to the exact shift.",
+       "a": "dialogues/work-factory-visit/29.mp3",
+       "d": 4.34
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "**Hon**estly, / I was a **bit** {**nerv**ous|nervous} / about **chang**ing suppliers. ↘",
+       "t": "Honestly, I was a bit nervous about changing suppliers.",
+       "a": "dialogues/work-factory-visit/30.mp3",
+       "d": 3.28
+      },
+      {
+       "m": "But **some**times, / you **have** to {take a **risk**|Take a risk}. ↘",
+       "t": "But sometimes, you have to take a risk.",
+       "a": "dialogues/work-factory-visit/31.mp3",
+       "d": 2.33
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "{**Don't** be a**fraid**|Don't be afraid} / to {**ask** **ques**tions|Ask a question}. ↘",
+       "t": "Don't be afraid to ask questions.",
+       "a": "dialogues/work-factory-visit/32.mp3",
+       "d": 2.08
+      },
+      {
+       "m": "If **some**thing goes **wrong**, ↗ / we'll {take re**spon**si**bil**ity|Take responsibility}, ↗ / and we'll {**solve** the **prob**lem|Solve a problem} **fast**. ↘",
+       "t": "If something goes wrong, we'll take responsibility, and we'll solve the problem fast.",
+       "a": "dialogues/work-factory-visit/33.mp3",
+       "d": 5.43
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "**Then** I'd like a {**tri**al run|trial run / test run} **first**. ↘",
+       "t": "Then I'd like a trial run first.",
+       "a": "dialogues/work-factory-visit/34.mp3",
+       "d": 2.1
+      },
+      {
+       "m": "Could you **send** me a {quo**ta**tion|quotation / quote}, ↗ / {a**long** with|along with} a **few** **proof** prints? ↗",
+       "t": "Could you send me a quotation, along with a few proof prints?",
+       "a": "dialogues/work-factory-visit/35.mp3",
+       "d": 3.43
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "**Sure**. ↘",
+       "t": "Sure.",
+       "a": "dialogues/work-factory-visit/36.mp3",
+       "d": 0.71
+      },
+      {
+       "m": "I'll {re**ply** to your e**mail**|Reply to an email} by **Fri**day, ↗ / and I'll {con**firm**|confirm} the {**sched**ule|schedule} / after {the **morn**ing **brief**ing|The morning briefing} to**mor**row. ↘",
+       "t": "I'll reply to your email by Friday, and I'll confirm the schedule after the morning briefing tomorrow.",
+       "a": "dialogues/work-factory-visit/37.mp3",
+       "d": 6.39
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "**Per**fect. ↘ / I think we've {**come** to an a**gree**ment|Come to an agreement}. ↘",
+       "t": "Perfect. I think we've come to an agreement.",
+       "a": "dialogues/work-factory-visit/38.mp3",
+       "d": 2.32
+      },
+      {
+       "m": "Let's {**keep** in **touch**|Keep in touch}! ↘",
+       "t": "Let's keep in touch!",
+       "a": "dialogues/work-factory-visit/39.mp3",
+       "d": 1.31
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "{**Def**initely|Definitely}. ↘ / Thanks for **com**ing, **Sar**ah. ↘",
+       "t": "Definitely. Thanks for coming, Sarah.",
+       "a": "dialogues/work-factory-visit/40.mp3",
+       "d": 2.28
+      },
+      {
+       "m": "En**joy** the **rest** of your **trip**! ↘",
+       "t": "Enjoy the rest of your trip!",
+       "a": "dialogues/work-factory-visit/41.mp3",
+       "d": 1.85
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "travel-hotel-checkin",
+   "topic": "Du lịch",
+   "title": "Hotel check-in",
+   "desc": "Mike sang Chicago dự hội chợ bao bì, đến khách sạn lúc tối và nhận phòng với Anna ở quầy lễ tân.",
+   "speakers": {
+    "ANNA": "Anna",
+    "MIKE": "Mike"
+   },
+   "lines": [
+    {
+     "who": "ANNA",
+     "s": [
+      {
+       "m": "**Good** evening, sir. ↘",
+       "t": "Good evening, sir.",
+       "a": "dialogues/travel-hotel-checkin/01.mp3",
+       "d": 1.05
+      },
+      {
+       "m": "**Wel**come to the **Lake**side Hotel. ↘",
+       "t": "Welcome to the Lakeside Hotel.",
+       "a": "dialogues/travel-hotel-checkin/02.mp3",
+       "d": 1.81
+      },
+      {
+       "m": "Do you have a reser**va**tion? ↗",
+       "t": "Do you have a reservation?",
+       "a": "dialogues/travel-hotel-checkin/03.mp3",
+       "d": 1.42
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "**Yes**. ↘ / It's under **Mike** **Tran**. ↘",
+       "t": "Yes. It's under Mike Tran.",
+       "a": "dialogues/travel-hotel-checkin/04.mp3",
+       "d": 1.72
+      },
+      {
+       "m": "Sorry, ↗ / I'm a little **slow**. ↘",
+       "t": "Sorry, I'm a little slow.",
+       "a": "dialogues/travel-hotel-checkin/05.mp3",
+       "d": 1.61
+      },
+      {
+       "m": "I just had a **twelve**-hour {**lay**over|layover} / in **Seoul**. ↘",
+       "t": "I just had a twelve-hour layover in Seoul.",
+       "a": "dialogues/travel-hotel-checkin/06.mp3",
+       "d": 2.43
+      }
+     ]
+    },
+    {
+     "who": "ANNA",
+     "s": [
+      {
+       "m": "Oh, ↗ / you must be {**jet** lagged|jet lagged}. ↘",
+       "t": "Oh, you must be jet lagged.",
+       "a": "dialogues/travel-hotel-checkin/07.mp3",
+       "d": 1.83
+      },
+      {
+       "m": "How was the **flight**? ↘",
+       "t": "How was the flight?",
+       "a": "dialogues/travel-hotel-checkin/08.mp3",
+       "d": 1.06
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "**Long**. ↘",
+       "t": "Long.",
+       "a": "dialogues/travel-hotel-checkin/09.mp3",
+       "d": 0.75
+      },
+      {
+       "m": "I had a **mid**dle {**seat**|seat}, ↗ / far from {the **aisle**|the aisle}. ↘",
+       "t": "I had a middle seat, far from the aisle.",
+       "a": "dialogues/travel-hotel-checkin/10.mp3",
+       "d": 2.49
+      },
+      {
+       "m": "And the {**land**ing|landing} was a bit **bump**y. ↘",
+       "t": "And the landing was a bit bumpy.",
+       "a": "dialogues/travel-hotel-checkin/11.mp3",
+       "d": 1.93
+      }
+     ]
+    },
+    {
+     "who": "ANNA",
+     "s": [
+      {
+       "m": "That sounds **tir**ing. ↘",
+       "t": "That sounds tiring.",
+       "a": "dialogues/travel-hotel-checkin/12.mp3",
+       "d": 1.19
+      },
+      {
+       "m": "Okay, ↗ / I found your **book**ing. ↘",
+       "t": "Okay, I found your booking.",
+       "a": "dialogues/travel-hotel-checkin/13.mp3",
+       "d": 1.74
+      },
+      {
+       "m": "**Three** nights, ↗ / **non**-smoking. ↘",
+       "t": "Three nights, non-smoking.",
+       "a": "dialogues/travel-hotel-checkin/14.mp3",
+       "d": 1.8
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "**Per**fect. ↘",
+       "t": "Perfect.",
+       "a": "dialogues/travel-hotel-checkin/15.mp3",
+       "d": 0.89
+      },
+      {
+       "m": "Is there a {**shut**tle|shuttle} / to the con**ven**tion center? ↗",
+       "t": "Is there a shuttle to the convention center?",
+       "a": "dialogues/travel-hotel-checkin/16.mp3",
+       "d": 2.5
+      },
+      {
+       "m": "I'm here for a **pack**aging **trade** show. ↘",
+       "t": "I'm here for a packaging trade show.",
+       "a": "dialogues/travel-hotel-checkin/17.mp3",
+       "d": 2.11
+      }
+     ]
+    },
+    {
+     "who": "ANNA",
+     "s": [
+      {
+       "m": "**Yes**. ↘",
+       "t": "Yes.",
+       "a": "dialogues/travel-hotel-checkin/18.mp3",
+       "d": 0.66
+      },
+      {
+       "m": "The shuttle **leaves** every **thir**ty minutes, ↗ / from **sev**en in the **morn**ing. ↘",
+       "t": "The shuttle leaves every thirty minutes, from seven in the morning.",
+       "a": "dialogues/travel-hotel-checkin/19.mp3",
+       "d": 3.47
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "**Great**. ↘",
+       "t": "Great.",
+       "a": "dialogues/travel-hotel-checkin/20.mp3",
+       "d": 0.81
+      },
+      {
+       "m": "Oh, ↗ / and I forgot my {**charg**er|A charger}. ↘",
+       "t": "Oh, and I forgot my charger.",
+       "a": "dialogues/travel-hotel-checkin/21.mp3",
+       "d": 2.03
+      },
+      {
+       "m": "Do you have one / I could {**bor**row|borrow}? ↗",
+       "t": "Do you have one I could borrow?",
+       "a": "dialogues/travel-hotel-checkin/22.mp3",
+       "d": 1.82
+      }
+     ]
+    },
+    {
+     "who": "ANNA",
+     "s": [
+      {
+       "m": "Of **course**. ↘",
+       "t": "Of course.",
+       "a": "dialogues/travel-hotel-checkin/23.mp3",
+       "d": 0.85
+      },
+      {
+       "m": "I'll have someone {**fetch**|fetch} one for you. ↘",
+       "t": "I'll have someone fetch one for you.",
+       "a": "dialogues/travel-hotel-checkin/24.mp3",
+       "d": 1.69
+      },
+      {
+       "m": "You can find all the other {a**men**ities|Amenity} / in the **room**. ↘",
+       "t": "You can find all the other amenities in the room.",
+       "a": "dialogues/travel-hotel-checkin/25.mp3",
+       "d": 2.54
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "**Thanks**. ↘",
+       "t": "Thanks.",
+       "a": "dialogues/travel-hotel-checkin/26.mp3",
+       "d": 0.79
+      },
+      {
+       "m": "And can I **skip** the {**tow**el change|towel change}? ↗",
+       "t": "And can I skip the towel change?",
+       "a": "dialogues/travel-hotel-checkin/27.mp3",
+       "d": 1.96
+      },
+      {
+       "m": "I'd like to **save** **wa**ter. ↘",
+       "t": "I'd like to save water.",
+       "a": "dialogues/travel-hotel-checkin/28.mp3",
+       "d": 1.44
+      }
+     ]
+    },
+    {
+     "who": "ANNA",
+     "s": [
+      {
+       "m": "**Sure**. ↘",
+       "t": "Sure.",
+       "a": "dialogues/travel-hotel-checkin/29.mp3",
+       "d": 0.62
+      },
+      {
+       "m": "Just hang the **sign** / on the **door**. ↘",
+       "t": "Just hang the sign on the door.",
+       "a": "dialogues/travel-hotel-checkin/30.mp3",
+       "d": 1.5
+      },
+      {
+       "m": "By the **way**, ↗ / it's going to **rain** tomorrow. ↘",
+       "t": "By the way, it's going to rain tomorrow.",
+       "a": "dialogues/travel-hotel-checkin/31.mp3",
+       "d": 2.25
+      },
+      {
+       "m": "You might want to {**check** the **fore**cast|Check the forecast}. ↘",
+       "t": "You might want to check the forecast.",
+       "a": "dialogues/travel-hotel-checkin/32.mp3",
+       "d": 1.76
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "**Good** to know. ↘",
+       "t": "Good to know.",
+       "a": "dialogues/travel-hotel-checkin/33.mp3",
+       "d": 1.0
+      },
+      {
+       "m": "My {i**tin**erary|Itinerary} is **pret**ty **full**, ↗ / but I'd **love** to {**wan**der|wander} around the **ci**ty on **Sun**day. ↘",
+       "t": "My itinerary is pretty full, but I'd love to wander around the city on Sunday.",
+       "a": "dialogues/travel-hotel-checkin/34.mp3",
+       "d": 5.3
+      }
+     ]
+    },
+    {
+     "who": "ANNA",
+     "s": [
+      {
+       "m": "Then you should **vis**it the **Riv**erwalk. ↘",
+       "t": "Then you should visit the Riverwalk.",
+       "a": "dialogues/travel-hotel-checkin/35.mp3",
+       "d": 1.8
+      },
+      {
+       "m": "And our {**roof**top|Rooftop} **bar** / has a **great** view of the {**sky**scrapers|skyscraper}. ↘",
+       "t": "And our rooftop bar has a great view of the skyscrapers.",
+       "a": "dialogues/travel-hotel-checkin/36.mp3",
+       "d": 3.44
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "**Sounds** amazing. ↘",
+       "t": "Sounds amazing.",
+       "a": "dialogues/travel-hotel-checkin/37.mp3",
+       "d": 1.21
+      },
+      {
+       "m": "One more **thing**. ↘",
+       "t": "One more thing.",
+       "a": "dialogues/travel-hotel-checkin/38.mp3",
+       "d": 1.15
+      },
+      {
+       "m": "I'd like to book a **tax**i to the **air**port {in ad**vance**|in advance}, ↗ / for **Wednes**day **morn**ing. ↘",
+       "t": "I'd like to book a taxi to the airport in advance, for Wednesday morning.",
+       "a": "dialogues/travel-hotel-checkin/39.mp3",
+       "d": 4.33
+      }
+     ]
+    },
+    {
+     "who": "ANNA",
+     "s": [
+      {
+       "m": "No **prob**lem, ↗ / I'll **book** it for you. ↘",
+       "t": "No problem, I'll book it for you.",
+       "a": "dialogues/travel-hotel-checkin/40.mp3",
+       "d": 2.1
+      },
+      {
+       "m": "Here's your **key**. ↘",
+       "t": "Here's your key.",
+       "a": "dialogues/travel-hotel-checkin/41.mp3",
+       "d": 0.99
+      },
+      {
+       "m": "Your room is **eight** twenty-**two**, ↗ / on the **eighth** floor. ↘",
+       "t": "Your room is eight twenty-two, on the eighth floor.",
+       "a": "dialogues/travel-hotel-checkin/42.mp3",
+       "d": 2.81
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "Thank you **so** much, Anna. ↘",
+       "t": "Thank you so much, Anna.",
+       "a": "dialogues/travel-hotel-checkin/43.mp3",
+       "d": 1.54
+      },
+      {
+       "m": "You've been **real**ly {**help**ful|Helpful}. ↘",
+       "t": "You've been really helpful.",
+       "a": "dialogues/travel-hotel-checkin/44.mp3",
+       "d": 1.52
+      }
+     ]
+    },
+    {
+     "who": "ANNA",
+     "s": [
+      {
+       "m": "My {**pleas**ure|pleasure}. ↘",
+       "t": "My pleasure.",
+       "a": "dialogues/travel-hotel-checkin/45.mp3",
+       "d": 0.84
+      },
+      {
+       "m": "En**joy** your **stay**, ↗ / and {get some **rest**|Get some rest}! ↘",
+       "t": "Enjoy your stay, and get some rest!",
+       "a": "dialogues/travel-hotel-checkin/46.mp3",
+       "d": 2.14
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "food-pho",
+   "topic": "Ẩm thực",
+   "title": "A bowl of pho",
+   "desc": "Sáng hôm sau buổi thăm nhà máy, Mike dẫn Sarah đi ăn phở ở Sài Gòn.",
+   "speakers": {
+    "MIKE": "Mike",
+    "SARAH": "Sarah"
+   },
+   "lines": [
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "So, ↗ / this is my **fa**vorite **pho** place / in **Sai**gon. ↘",
+       "t": "So, this is my favorite pho place in Saigon.",
+       "a": "dialogues/food-pho/01.mp3",
+       "d": 3.03
+      },
+      {
+       "m": "Have you tried Vietnamese {**cui**sine|cuisine} before? ↗",
+       "t": "Have you tried Vietnamese cuisine before?",
+       "a": "dialogues/food-pho/02.mp3",
+       "d": 2.6
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "Only {**rice** wraps|rice wraps}, ↗ / back in Chi**ca**go. ↘",
+       "t": "Only rice wraps, back in Chicago.",
+       "a": "dialogues/food-pho/03.mp3",
+       "d": 2.26
+      },
+      {
+       "m": "**Noth**ing like **this**. ↘",
+       "t": "Nothing like this.",
+       "a": "dialogues/food-pho/04.mp3",
+       "d": 1.2
+      },
+      {
+       "m": "It smells a**maz**ing! ↘",
+       "t": "It smells amazing!",
+       "a": "dialogues/food-pho/05.mp3",
+       "d": 1.33
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "That's the {**broth**|broth}. ↘",
+       "t": "That's the broth.",
+       "a": "dialogues/food-pho/06.mp3",
+       "d": 1.14
+      },
+      {
+       "m": "They {**sim**mer|simmer} beef bones for **ten** hours, ↗ / with {**star** anise|star anise}, ↗ / {**cin**namon|Cinnamon}, ↗ / {**gin**ger|ginger}, ↗ / and {**charred**|charred} {**on**ion|onion}. ↘",
+       "t": "They simmer beef bones for ten hours, with star anise, cinnamon, ginger, and charred onion.",
+       "a": "dialogues/food-pho/07.mp3",
+       "d": 6.22
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "**Ten** hours? ↗",
+       "t": "Ten hours?",
+       "a": "dialogues/food-pho/08.mp3",
+       "d": 0.92
+      },
+      {
+       "m": "**Wow**. ↘",
+       "t": "Wow.",
+       "a": "dialogues/food-pho/09.mp3",
+       "d": 0.64
+      },
+      {
+       "m": "So, ↗ / what should I **or**der? ↘",
+       "t": "So, what should I order?",
+       "a": "dialogues/food-pho/10.mp3",
+       "d": 1.37
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "The **spe**cial. ↘",
+       "t": "The special.",
+       "a": "dialogues/food-pho/11.mp3",
+       "d": 1.01
+      },
+      {
+       "m": "It has **ev**erything: ↗ / thin {**slic**es|Slice} of **beef**, ↗ / **meat**balls, ↗ / and {**rice** noodles|rice noodles}. ↘",
+       "t": "It has everything: thin slices of beef, meatballs, and rice noodles.",
+       "a": "dialogues/food-pho/12.mp3",
+       "d": 4.73
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "Okay, ↗ / {I'll **go** with|I'll go with} the **spe**cial, ↗ / and an {**iced tea**|iced tea}, please. ↘",
+       "t": "Okay, I'll go with the special, and an iced tea, please.",
+       "a": "dialogues/food-pho/13.mp3",
+       "d": 3.24
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "**Good** choice. ↘",
+       "t": "Good choice.",
+       "a": "dialogues/food-pho/14.mp3",
+       "d": 1.06
+      },
+      {
+       "m": "Now, ↗ / add some {**herbs**|herbs}: ↗ / {**ba**sil|Basil}, ↗ / {**bean** sprouts|bean sprouts}, ↗ / and a little **lime**. ↘",
+       "t": "Now, add some herbs: basil, bean sprouts, and a little lime.",
+       "a": "dialogues/food-pho/15.mp3",
+       "d": 4.02
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "What about **this** one? ↗",
+       "t": "What about this one?",
+       "a": "dialogues/food-pho/16.mp3",
+       "d": 1.15
+      },
+      {
+       "m": "The **green** leaves. ↘",
+       "t": "The green leaves.",
+       "a": "dialogues/food-pho/17.mp3",
+       "d": 1.1
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "That's {ci**lan**tro|cilantro}. ↘",
+       "t": "That's cilantro.",
+       "a": "dialogues/food-pho/18.mp3",
+       "d": 1.21
+      },
+      {
+       "m": "Some people **hate** it, ↗ / so {**take** a **bite**|take a bite} **first**. ↘",
+       "t": "Some people hate it, so take a bite first.",
+       "a": "dialogues/food-pho/19.mp3",
+       "d": 2.69
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "Mmm… ↘ / it's **fine**. ↘",
+       "t": "Mmm… it's fine.",
+       "a": "dialogues/food-pho/20.mp3",
+       "d": 1.65
+      },
+      {
+       "m": "And these {**dip**ping **sauc**es|dipping sauces}? ↗",
+       "t": "And these dipping sauces?",
+       "a": "dialogues/food-pho/21.mp3",
+       "d": 1.49
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "The **brown** one is **hoi**sin, ↗ / it's {**sweet**|Sweet (adj)}. ↘",
+       "t": "The brown one is hoisin, it's sweet.",
+       "a": "dialogues/food-pho/22.mp3",
+       "d": 2.1
+      },
+      {
+       "m": "The **red** one is **chi**li. ↘",
+       "t": "The red one is chili.",
+       "a": "dialogues/food-pho/23.mp3",
+       "d": 1.46
+      },
+      {
+       "m": "It's **real**ly {**spic**y|Spicy (adj)}. ↘",
+       "t": "It's really spicy.",
+       "a": "dialogues/food-pho/24.mp3",
+       "d": 1.35
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "I'll be **care**ful. ↘",
+       "t": "I'll be careful.",
+       "a": "dialogues/food-pho/25.mp3",
+       "d": 0.95
+      },
+      {
+       "m": "Let me {**take** a **sip**|take a sip} of the broth **first**. ↘",
+       "t": "Let me take a sip of the broth first.",
+       "a": "dialogues/food-pho/26.mp3",
+       "d": 2.0
+      },
+      {
+       "m": "**Oh**, ↗ / it's **rich**, ↗ / but **light** at the **same** time. ↘",
+       "t": "Oh, it's rich, but light at the same time.",
+       "a": "dialogues/food-pho/27.mp3",
+       "d": 2.48
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "**Ex**actly. ↘",
+       "t": "Exactly.",
+       "a": "dialogues/food-pho/28.mp3",
+       "d": 0.97
+      },
+      {
+       "m": "**South**ern pho is a bit **sweet**er. ↘",
+       "t": "Southern pho is a bit sweeter.",
+       "a": "dialogues/food-pho/29.mp3",
+       "d": 1.95
+      },
+      {
+       "m": "In the **north**, ↗ / the broth is {**mild**er|milder}, ↗ / and they don't use as **ma**ny herbs. ↘",
+       "t": "In the north, the broth is milder, and they don't use as many herbs.",
+       "a": "dialogues/food-pho/30.mp3",
+       "d": 4.42
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "{**Which** one do you pre**fer**?|Which one do you prefer?} ↘",
+       "t": "Which one do you prefer?",
+       "a": "dialogues/food-pho/31.mp3",
+       "d": 1.29
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "I grew up in the **south**, ↗ / so {I'd **say**|I would say} **this** one. ↘",
+       "t": "I grew up in the south, so I'd say this one.",
+       "a": "dialogues/food-pho/32.mp3",
+       "d": 2.75
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "I can see **why**. ↘",
+       "t": "I can see why.",
+       "a": "dialogues/food-pho/33.mp3",
+       "d": 1.06
+      },
+      {
+       "m": "It's **so** much better than {**West**ern food|Western food} / for **break**fast. ↘",
+       "t": "It's so much better than Western food for breakfast.",
+       "a": "dialogues/food-pho/34.mp3",
+       "d": 2.75
+      }
+     ]
+    },
+    {
+     "who": "MIKE",
+     "s": [
+      {
+       "m": "**Care**ful. ↘",
+       "t": "Careful.",
+       "a": "dialogues/food-pho/35.mp3",
+       "d": 0.79
+      },
+      {
+       "m": "If you **fin**ish the **whole** bowl, ↗ / you'll get a {**food** coma|Food coma}. ↘",
+       "t": "If you finish the whole bowl, you'll get a food coma.",
+       "a": "dialogues/food-pho/36.mp3",
+       "d": 3.01
+      }
+     ]
+    },
+    {
+     "who": "SARAH",
+     "s": [
+      {
+       "m": "{**Worth** it|worth}! ↘",
+       "t": "Worth it!",
+       "a": "dialogues/food-pho/37.mp3",
+       "d": 0.8
+      },
+      {
+       "m": "Let's do this a**gain** tomorrow. ↘",
+       "t": "Let's do this again tomorrow.",
+       "a": "dialogues/food-pho/38.mp3",
+       "d": 1.59
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

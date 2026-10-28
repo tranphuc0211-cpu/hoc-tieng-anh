@@ -278,6 +278,25 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .say-count{font-size:40px;font-weight:800;color:var(--lav-accent);min-height:48px;}
   .say-rate{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
   .say-rate:empty{display:none;}
+  /* Hội thoại shadowing */
+  .dlg-tools{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;}
+  .dlg-legend{font-size:13px;color:var(--ink-2);}
+  .dlg-tools .speak-small{flex:none;white-space:nowrap;}
+  .dlg-lines{margin:6px 0 4px;}
+  .dlg-line{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);}
+  .dlg-who{flex:none;width:60px;margin-top:3px;padding:2px 0;border-radius:999px;text-align:center;font-size:13px;font-weight:700;background:var(--lav-100);color:var(--lav-ink);}
+  .dlg-line.b .dlg-who{background:var(--peach-100);color:var(--peach-ink);}
+  .dlg-text{flex:1;min-width:0;font-size:17px;line-height:1.65;}
+  .dlg-s{border-radius:6px;padding:1px 2px;cursor:pointer;}
+  .dlg-s.sel{background:var(--lav-50);box-shadow:inset 0 0 0 1px var(--lav-200);}
+  .dlg-s.now{background:var(--butter);}
+  .dlg-s b{font-weight:800;}
+  .dlg-p{color:var(--ink-2);font-weight:700;}
+  .dlg-ar{color:var(--lav-ink);font-weight:700;}
+  .dlg-vocab{text-decoration:underline;text-decoration-color:var(--peach);text-decoration-thickness:2px;text-underline-offset:3px;}
+  .dlg-lines.hide-text .dlg-text{filter:blur(7px);}
+  .dlg-status{min-height:20px;margin-top:8px;font-size:14px;font-weight:700;color:var(--lav-ink);text-align:center;}
+  .dlg-play{display:flex;gap:8px;align-items:center;}
 
   /* ---------- Quiz ---------- */
   .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -583,6 +602,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="view-title">Luyện tập</div>
       <button class="btn btn-soft btn-block say-entry" onclick="openSay(true)"><svg class="ic"><use href="#i-mic"/></svg><span class="say-entry-text">Cụm hôm nay: luyện nói<small id="sayEntryStats"></small></span></button>
       <button class="say-list-link" onclick="openSayList()">Xem danh sách cụm đã luyện</button>
+      <button class="btn btn-soft btn-block say-entry" style="margin-bottom:14px;" onclick="openDlgList()"><svg class="ic"><use href="#i-volume"/></svg><span class="say-entry-text">Hội thoại shadowing<small id="dlgEntryStats"></small></span></button>
       <div class="card">
         <span class="field-label">Kiểu bài</span>
         <div class="mode-grid" id="quizModeGrid">
@@ -946,6 +966,46 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   </div>
 </div>
 
+<!-- Hội thoại shadowing: danh sách bài và màn luyện một bài (xem phần HỘI THOẠI SHADOWING trong script) -->
+<div class="modal-overlay" id="dlgListOverlay" onclick="if(event.target===this) closeDlgList()">
+  <div class="modal">
+    <h3>Hội thoại shadowing</h3>
+    <p class="muted" style="margin-top:-6px;">Giọng Mỹ, dùng từ vựng của bạn. Chọn một bài để luyện.</p>
+    <div id="dlgListBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeDlgList()">Đóng</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="dlgOverlay" onclick="if(event.target===this) closeDlg()">
+  <div class="modal">
+    <div class="say-top"><span class="say-tag" id="dlgTopic"></span><span id="dlgDone"></span></div>
+    <h3 id="dlgTitle" style="margin-bottom:2px;"></h3>
+    <p class="muted" id="dlgDesc" style="margin:0 0 10px;"></p>
+    <div class="segmented" id="dlgModeSeg">
+      <button data-v="listen" onclick="setDlgMode('listen')">Nghe cả bài</button>
+      <button data-v="repeat" onclick="setDlgMode('repeat')">Lặp lại</button>
+      <button data-v="shadow" onclick="setDlgMode('shadow')">Shadow</button>
+    </div>
+    <p class="muted" id="dlgHint" style="margin:8px 0 0;"></p>
+    <div class="dlg-tools">
+      <span class="dlg-legend">Chữ đậm: nhấn · / ngắt · ↗↘ lên/xuống giọng · ‿ nối âm</span>
+      <button class="speak-small" id="dlgHideBtn" onclick="toggleDlgHide()">Ẩn chữ</button>
+    </div>
+    <div class="dlg-lines" id="dlgLines" onclick="dlgLinesClick(event)"></div>
+    <div class="dlg-status" id="dlgStatus" aria-live="polite"></div>
+    <div class="speak-status" aria-live="polite"></div>
+    <div class="speak-takes" aria-live="polite"></div>
+    <div class="modal-actions" style="justify-content:space-between;">
+      <button class="btn btn-outline" onclick="closeDlg()">Đóng</button>
+      <span class="dlg-play">
+        <button class="speak-small shadow-btn" data-label="Đọc theo" onclick="dlgShadow()"><svg class="ic"><use href="#i-mic"/></svg><span>Đọc theo</span></button>
+        <button class="btn btn-primary" id="dlgPlayBtn" onclick="dlgPlayToggle()">Phát</button>
+      </span>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ============================================================
    DATA MODEL
@@ -1250,7 +1310,7 @@ function switchView(name){
   // Quay lại tab Học: giữ nguyên lượt đang học dở (chỉ tạo lượt mới khi chưa có thẻ nào)
   if(name==='flashcard'){ if(fcList.length) applyDataToUI(); else refreshFlashcard(); }
   if(name==='overview') renderOverview();
-  if(name==='quiz'){ refreshQuizCategoryOptions(); renderSayEntry(); }
+  if(name==='quiz'){ refreshQuizCategoryOptions(); renderSayEntry(); renderDlgEntry(); }
   if(name==='settings') renderStatPills();
 }
 
@@ -1461,6 +1521,7 @@ function applyProgressDoc(data){
   otherLog = others;
   if([10,20,30,50].includes(data.goal) && data.goal !== dailyGoal){ dailyGoal = data.goal; safeSet(GOAL_KEY, String(data.goal)); }
   Object.keys(data.milestones || {}).forEach(id=>milestoneMark(id, true));   // máy này không báo lại mốc máy khác đã báo
+  dlgApplyCloud(data.dlg);
   renderToday();
 }
 /* Phần máy này có mà cloud chưa có (lịch sử cũ, thay đổi lúc mất mạng) và các ngày quá 400 ngày cần xoá */
@@ -1488,6 +1549,8 @@ function pullProgress(){
     applyProgressDoc(data);
     const patch = progressReconcilePatch(data);
     if(patch) progressPatch(patch);
+    const dlgPatch = dlgReconcilePatch(data.dlg);   // ghi riêng: quy tắc cho trường dlg chưa triển khai thì chỉ lần ghi này bị từ chối
+    if(dlgPatch) progressPatch(dlgPatch);
     if(!progressUnsub){
       progressUnsub = progressRef.onSnapshot(d=>{
         if(d.metadata.hasPendingWrites || d.metadata.fromCache || !d.exists) return;
@@ -1841,6 +1904,7 @@ let speakRun = 0;          // tăng mỗi lần bắt đầu/dừng; các hàm g
 let speakTimer = null;
 let speakGuard = null;       // đồng hồ chống treo: iPhone đôi khi không báo "đọc xong"
 let speakShadowOn = false;
+let dlgPlaying = false;      // đang phát một bài Hội thoại shadowing (xem phần HỘI THOẠI SHADOWING)
 /* Hiện trạng thái trên thẻ: null = không đọc, 'listen' = đang nghe máy đọc, 'you' = đến lượt người học,
    'mic' = đang ghi âm người học */
 function setSpeakUI(mode){
@@ -1861,6 +1925,7 @@ function stopSpeaking(){
   stopMyPlayback();
   try{ if('speechSynthesis' in window) speechSynthesis.cancel(); }catch(e){}
   setSpeakUI(null);
+  if(dlgPlaying) dlgHalt();
 }
 
 /* ---- Ghi âm giọng người học để nghe lại (MediaRecorder; bản ghi chỉ nằm trong bộ nhớ, không gửi đi) ---- */
@@ -2073,6 +2138,7 @@ function normalizeTake(blob){
 /* Kết quả một lượt "đọc theo": các đoạn đã ghi + hai nút nghe lại */
 let myTakes = [];          // [{url}] theo thứ tự các đoạn
 let lastShadowText = '';
+let lastShadowStd = null;  // phát âm chuẩn bằng file thay cho giọng máy (Hội thoại shadowing): fn(done)
 let myPlayRun = 0, myAudio = null;
 function showTakes(html){ document.querySelectorAll('.speak-takes').forEach(el=>{ el.innerHTML = html; }); }
 function clearTakes(){
@@ -2090,9 +2156,15 @@ function stopMyPlayback(){
   myPlayRun++;
   if(myAudio){ try{ myAudio.pause(); }catch(e){} myAudio = null; }
 }
-function playStandard(){ if(lastShadowText) speakText(lastShadowText); }
+function playStandard(){
+  if(lastShadowStd){ stopSpeaking(); lastShadowStd(); }
+  else if(lastShadowText) speakText(lastShadowText);
+}
 /* Ghi xong là tự phát Âm chuẩn rồi Giọng bạn, không phải bấm (anh Phúc, 2026-10-19). Hai nút vẫn còn để nghe lại. */
-function playCompare(){ if(lastShadowText) speakText(lastShadowText, {done: playMine}); }
+function playCompare(){
+  if(lastShadowStd){ stopSpeaking(); lastShadowStd(playMine); }
+  else if(lastShadowText) speakText(lastShadowText, {done: playMine});
+}
 /* Cũng vậy với giọng đọc máy: Safari trên iPhone bỏ qua speechSynthesis.speak() không nằm trong cú chạm nếu trang chưa
    đọc lần nào trong cú chạm, nên ghi xong chỉ nghe được Giọng bạn, mất Âm chuẩn (anh Phúc, 2026-10-20). Đọc một câu rỗng,
    tắt tiếng ngay trong cú chạm "Đọc theo" để mở khoá. */
@@ -2124,6 +2196,7 @@ function playMine(){
     const a = myAudioEl || new Audio();
     a.muted = false;
     a.src = myTakes[k++].url;
+    a.defaultPlaybackRate = a.playbackRate = 1;    // thẻ dùng chung với Hội thoại shadowing (có lúc phát chậm 85%)
     myAudio = a;
     a.onended = ()=>setTimeout(step, 350);
     a.onerror = step;
@@ -2141,7 +2214,7 @@ function speakText(text, opts){
   const shadow = !!(opts && opts.shadow);
   const rate = SPEAK_RATES[speakRateName];
   stopSpeaking();
-  if(shadow){ clearTakes(); lastShadowText = text; }
+  if(shadow){ clearTakes(); lastShadowText = text; lastShadowStd = null; }
   const run = speakRun;
   const chunks = splitSpeech(text);
   let i = 0;
@@ -2178,12 +2251,13 @@ function speakText(text, opts){
    Máy tính: micro mở 1 lần cho cả phiên, giữa các lượt chỉ tắt tiếng. iPhone: đóng hẳn sau mỗi lượt (xem MIC_CLOSE_EACH_TAKE).
    opts (dùng cho Cụm hôm nay): wait = thời gian chờ người học nói (ms), onStart() lúc bắt đầu ghi, onTake() khi có bản ghi,
    mineOnly = chỉ tự phát Giọng bạn (câu tự đặt, không có âm chuẩn để so); giveUp / cap / silence (ms) thay các mốc mặc định
-   của recordTurn cho câu tự nói dài. */
+   của recordTurn cho câu tự nói dài; std(done) = phát âm chuẩn bằng file thay cho giọng máy (Hội thoại shadowing). */
 function shadowRecord(text, opts){
   opts = opts || {};
   stopSpeaking();
   clearTakes();
   lastShadowText = text;
+  lastShadowStd = opts.std || null;
   const run = speakRun;
   unlockMyAudio();                                 // cũng phải gọi trong cú chạm, để lát nữa tự phát Giọng bạn được
   unlockSpeech();                                  // và để lát nữa tự đọc Âm chuẩn được
@@ -3759,6 +3833,327 @@ function submitPin(){
     haptic(60);
     document.getElementById('pinMsg').textContent = 'Mã PIN chưa đúng, thử lại nhé.';
   }
+}
+
+/* ============================================================
+   HỘI THOẠI SHADOWING (anh Phúc, 2026-10-28)
+   Bài hội thoại giọng Mỹ do Claude viết từ từ vựng của anh Phúc, mỗi đợt vài bài. Nội dung nằm ở dialogues/dialogues.json,
+   giọng đọc là file mp3 từng câu (dialogues/<mã bài>/NN.mp3) tạo sẵn; thêm bài mới chỉ cần thêm file, không sửa code.
+   Mỗi câu: m = câu có ký hiệu (**nhấn**, / ngắt, ↗ ↘ lên/xuống giọng, ‿ nối âm, {chữ|từ trong app} = gạch chân từ vựng),
+   t = câu thường (đọc bằng giọng máy khi không tải được file), a = file mp3, d = độ dài (giây).
+   3 chế độ: nghe cả bài; lặp lại (đọc chậm 85% từng câu, chừa khoảng lặng để nhắc lại); shadow (nói cùng lúc).
+   Phát bằng thẻ <audio> dùng chung myAudioEl, mở khoá trong cú chạm như Giọng bạn. File được tải bằng fetch() rồi phát từ
+   bộ nhớ: sw.js lưu được bản tải kiểu này (thẻ <audio> tự tải từng khúc thì không), nên đã mở bài một lần là lúc mất mạng
+   vẫn nghe được.
+   Tiến độ: nghe hết cả bài (từ câu đầu) là 1 lượt, cộng vào {l, r, s} của bài theo chế độ. Lưu trên máy (DLG_PROGRESS_KEY)
+   và đồng bộ qua learningApp/hoangphuc_progress, trường dlg[mã máy][mã bài]: mỗi máy chỉ ghi phần của mình, số hiện ra
+   là cộng các máy. Cần quy tắc Firestore cho trường dlg; chưa triển khai thì lần ghi đó bị từ chối, số trên máy vẫn đúng.
+============================================================ */
+const DLG_URL = 'dialogues/dialogues.json';
+const DLG_PROGRESS_KEY = 'tkmb_dlg_progress_v1';
+const DLG_MODE_KEY = 'tkmb_dlg_mode';
+const DLG_SLOW = 0.85;
+const DLG_MODES = {listen: 'Nghe cả bài', repeat: 'Lặp lại', shadow: 'Shadow'};
+const DLG_HINTS = {
+  listen: 'Nghe cả bài, mắt theo dõi lời thoại: chữ đậm là chỗ nhấn, mũi tên là lên/xuống giọng.',
+  repeat: 'App đọc chậm từng câu rồi dừng để bạn nhắc lại. Bấm một câu để chọn, bấm Đọc theo để ghi âm và so với giọng chuẩn.',
+  shadow: 'Nói cùng lúc với người đọc, không đợi họ nói xong. Quen rồi thì bấm Ẩn chữ để luyện bằng tai.',
+};
+let dlgLessons = null, dlgLoading = null;
+let dlgLesson = null, dlgFlat = [], dlgSel = 0, dlgCur = -1, dlgTok = 0, dlgTimer = null, dlgHide = false;
+let dlgMode = DLG_MODES[safeGet(DLG_MODE_KEY)] ? safeGet(DLG_MODE_KEY) : 'listen';
+let dlgOthers = {};          // tiến độ của các máy khác (từ cloud), cộng theo mã bài
+const dlgClips = new Map();  // file mp3 đã tải trong phiên: đường dẫn -> Promise(blob URL)
+
+function dlgLoad(){
+  if(dlgLessons) return Promise.resolve(dlgLessons);
+  if(!dlgLoading){
+    dlgLoading = fetch(DLG_URL, {cache:'no-cache'})
+      .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(j=>{ dlgLessons = (j && j.lessons) || []; dlgLoading = null; return dlgLessons; },
+            e=>{ dlgLoading = null; throw e; });
+  }
+  return dlgLoading;
+}
+function dlgClipUrl(path){
+  if(!dlgClips.has(path)){
+    dlgClips.set(path, fetch(path)
+      .then(r=>{ if(!r.ok) throw new Error(r.status); return r.blob(); })
+      .then(b=>URL.createObjectURL(b))
+      .catch(e=>{ dlgClips.delete(path); throw e; }));
+  }
+  return dlgClips.get(path);
+}
+
+/* ---- Tiến độ ---- */
+function dlgMine(){ try{ return JSON.parse(safeGet(DLG_PROGRESS_KEY) || '{}') || {}; }catch(e){ return {}; } }
+function dlgStats(id){
+  const a = dlgMine()[id] || {}, b = dlgOthers[id] || {};
+  return {l: (a.l || 0) + (b.l || 0), r: (a.r || 0) + (b.r || 0), s: (a.s || 0) + (b.s || 0)};
+}
+function dlgTotal(st){ return st.l + st.r + st.s; }
+function dlgRecord(mode){
+  const id = dlgLesson.id, mine = dlgMine();
+  const e = mine[id] || {l:0, r:0, s:0, last:''};
+  const f = {listen:'l', repeat:'r', shadow:'s'}[mode];
+  e[f] = (e[f] || 0) + 1;
+  e.last = localDay(new Date());
+  mine[id] = e;
+  safeSet(DLG_PROGRESS_KEY, JSON.stringify(mine));
+  progressPatch({dlg: {[deviceId]: {[id]: e}}});
+  renderDlgDone();
+  renderDlgEntry();
+}
+/* Nhận từ cloud: cộng phần các máy khác */
+function dlgApplyCloud(all){
+  const o = {};
+  Object.keys(all || {}).forEach(dev=>{
+    if(dev === deviceId) return;
+    const per = all[dev] || {};
+    Object.keys(per).forEach(id=>{
+      const e = per[id] || {}, t = o[id] || (o[id] = {l:0, r:0, s:0});
+      t.l += e.l || 0; t.r += e.r || 0; t.s += e.s || 0;
+    });
+  });
+  dlgOthers = o;
+  renderDlgEntry();
+  if(document.getElementById('dlgListOverlay').classList.contains('show')) renderDlgList();
+  if(document.getElementById('dlgOverlay').classList.contains('show')) renderDlgDone();
+}
+/* Phần của máy này: lấy số lớn hơn giữa máy và cloud (máy bị xoá dữ liệu thì lấy lại từ cloud), cloud thiếu thì đẩy lên */
+function dlgReconcilePatch(all){
+  const cloud = (all || {})[deviceId] || {}, mine = dlgMine(), out = {};
+  Object.keys({...mine, ...cloud}).forEach(id=>{
+    const a = mine[id] || {}, b = cloud[id] || {};
+    const m = {l: Math.max(a.l || 0, b.l || 0), r: Math.max(a.r || 0, b.r || 0), s: Math.max(a.s || 0, b.s || 0),
+               last: (a.last || '') > (b.last || '') ? a.last : (b.last || '')};
+    mine[id] = m;
+    if(m.l !== b.l || m.r !== b.r || m.s !== b.s || m.last !== b.last) out[id] = m;
+  });
+  safeSet(DLG_PROGRESS_KEY, JSON.stringify(mine));
+  return Object.keys(out).length ? {dlg: {[deviceId]: out}} : null;
+}
+
+/* ---- Danh sách bài ---- */
+function renderDlgEntry(){
+  const el = document.getElementById('dlgEntryStats');
+  if(!el) return;
+  const ids = Object.keys({...dlgMine(), ...dlgOthers});
+  const n = ids.reduce((a, id)=>a + dlgTotal(dlgStats(id)), 0);
+  el.textContent = n ? `Đã luyện ${n} lượt` + (dlgLessons ? ` · ${dlgLessons.length} bài` : '')
+                     : 'Nghe, nhắc lại và nói theo hội thoại giọng Mỹ';
+}
+function openDlgList(){
+  const body = document.getElementById('dlgListBody');
+  if(!dlgLessons) body.innerHTML = '<p class="muted">Đang tải danh sách bài...</p>';
+  document.getElementById('dlgListOverlay').classList.add('show');
+  dlgLoad().then(renderDlgList, ()=>{
+    body.innerHTML = '<p class="muted">Chưa tải được bài hội thoại. Lần đầu cần có mạng, hãy thử lại sau.</p>';
+  });
+}
+function closeDlgList(){ document.getElementById('dlgListOverlay').classList.remove('show'); }
+function renderDlgList(){
+  if(!dlgLessons) return;
+  document.getElementById('dlgListBody').innerHTML = dlgLessons.length ? dlgLessons.map(L=>{
+    const n = dlgTotal(dlgStats(L.id));
+    return `<button class="say-row" data-id="${escapeHtml(L.id)}" onclick="openDlg(this.dataset.id)">
+      <span class="say-row-main"><b>${escapeHtml(L.title)}</b><span>${escapeHtml(L.topic)} · ${escapeHtml(L.desc || '')}</span></span>
+      <span class="say-row-meta">${n ? `${n} lượt` : 'Chưa luyện'}</span></button>`;
+  }).join('') : '<p class="muted">Chưa có bài nào.</p>';
+  renderDlgEntry();
+}
+
+/* ---- Màn luyện một bài ---- */
+function openDlg(id){
+  const L = (dlgLessons || []).find(x=>x.id === id);
+  if(!L) return;
+  closeDlgList();
+  stopSpeaking(); clearTakes();
+  dlgLesson = L;
+  dlgFlat = [];
+  L.lines.forEach((ln, li)=>ln.s.forEach(s=>dlgFlat.push({s, li})));
+  dlgSel = 0; dlgCur = -1;
+  document.getElementById('dlgTopic').textContent = L.topic;
+  document.getElementById('dlgTitle').textContent = L.title;
+  document.getElementById('dlgDesc').textContent = L.desc || '';
+  renderDlgLines(); renderDlgMode(); renderDlgDone(); renderDlgPlay(); setDlgStatus('');
+  document.getElementById('dlgOverlay').classList.add('show');
+  document.querySelector('#dlgOverlay .modal').scrollTop = 0;
+  dlgFlat.forEach(x=>dlgClipUrl(x.s.a).catch(()=>{}));   // tải sẵn: phát liền mạch, và lần sau mất mạng vẫn nghe được
+}
+function closeDlg(){
+  stopSpeaking(); clearTakes();
+  document.getElementById('dlgOverlay').classList.remove('show');
+  renderDlgEntry();
+}
+function dlgNorm(s){ return String(s || '').trim().toLowerCase().replace(/[‘’]/g, "'"); }
+function dlgFindItem(term){ const t = dlgNorm(term); return DATA.find(d=>dlgNorm(d.term) === t); }
+/* Câu có ký hiệu -> HTML. Tách phần từ vựng {chữ|từ} ra trước, để dấu / trong tên từ (VD "proofing / proof print")
+   không bị hiểu là chỗ ngắt. */
+function dlgMarkHtml(m){
+  const fmt = s=>escapeHtml(s)
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/(^|\s)(\/+)(?=\s|$)/g, '$1<span class="dlg-p">$2</span>')
+    .replace(/[↗↘‿]/g, '<span class="dlg-ar">$&</span>');
+  return String(m).split(/(\{[^{}|]*\|[^{}]*\})/).map(p=>{
+    const v = p.match(/^\{([^{}|]*)\|([^{}]*)\}$/);
+    return v ? `<span class="dlg-vocab" data-term="${escapeHtml(v[2])}">${fmt(v[1])}</span>` : fmt(p);
+  }).join('');
+}
+function renderDlgLines(){
+  const L = dlgLesson, keys = Object.keys(L.speakers || {});
+  let k = 0;
+  const el = document.getElementById('dlgLines');
+  el.innerHTML = L.lines.map(ln=>`<div class="dlg-line${keys.indexOf(ln.who) === 1 ? ' b' : ''}">
+      <span class="dlg-who">${escapeHtml((L.speakers || {})[ln.who] || ln.who)}</span>
+      <div class="dlg-text">${ln.s.map(s=>`<span class="dlg-s" data-k="${k++}">${dlgMarkHtml(s.m)}</span>`).join(' <span class="dlg-p">//</span> ')}</div>
+    </div>`).join('');
+  el.classList.toggle('hide-text', dlgHide);
+  dlgHighlight();
+}
+function dlgHighlight(scroll){
+  document.querySelectorAll('#dlgLines .dlg-s').forEach(el=>{
+    const k = +el.dataset.k;
+    el.classList.toggle('sel', k === dlgSel);
+    el.classList.toggle('now', k === dlgCur);
+    if(scroll && k === dlgCur && el.scrollIntoView) el.scrollIntoView({block:'center', behavior:'smooth'});
+  });
+}
+function renderDlgMode(){
+  setSegActive('dlgModeSeg', dlgMode);
+  document.getElementById('dlgHint').textContent = DLG_HINTS[dlgMode];
+}
+function renderDlgDone(){
+  if(!dlgLesson) return;
+  const st = dlgStats(dlgLesson.id);
+  document.getElementById('dlgDone').textContent = dlgTotal(st) ? `Nghe ${st.l} · Lặp lại ${st.r} · Shadow ${st.s}` : '';
+}
+function renderDlgPlay(){ document.getElementById('dlgPlayBtn').textContent = dlgPlaying ? 'Dừng' : 'Phát'; }
+function setDlgStatus(msg){ document.getElementById('dlgStatus').textContent = msg; }
+function setDlgMode(m){
+  stopSpeaking();
+  dlgMode = m;
+  safeSet(DLG_MODE_KEY, m);
+  renderDlgMode();
+}
+function toggleDlgHide(){
+  dlgHide = !dlgHide;
+  document.getElementById('dlgLines').classList.toggle('hide-text', dlgHide);
+  document.getElementById('dlgHideBtn').textContent = dlgHide ? 'Hiện chữ' : 'Ẩn chữ';
+}
+/* Bấm từ gạch chân: hiện nghĩa trong app và chọn câu đó (không phát). Bấm chỗ khác trong câu: chọn và nghe riêng câu đó. */
+function dlgLinesClick(e){
+  const s = e.target.closest('.dlg-s');
+  const v = e.target.closest('.dlg-vocab');
+  if(v){
+    const it = dlgFindItem(v.dataset.term);
+    showToast(it ? `${it.term}${it.phonetic ? ' ' + it.phonetic : ''}: ${it.meaning || ''}` : v.dataset.term);
+    if(s && !dlgPlaying){ dlgSel = +s.dataset.k; dlgHighlight(); }
+    return;
+  }
+  if(s){ const k = +s.dataset.k; dlgStart(k, k + 1, dlgMode); }
+}
+function dlgPlayToggle(){
+  if(dlgPlaying){ stopSpeaking(); return; }
+  if(dlgFlat.length) dlgStart(dlgSel, dlgFlat.length, dlgMode);
+}
+/* Đọc theo câu đang chọn: bíp, ghi giọng bạn, rồi tự phát âm chuẩn (file) và giọng bạn. Tắt ghi âm thì nghe câu đó
+   rồi chừa khoảng lặng để nhắc lại. */
+function dlgShadow(){
+  if(speakShadowOn){ stopSpeaking(); clearTakes(); return; }
+  const x = dlgFlat[dlgSel];
+  if(!x) return;
+  if(speakRecordOn && micSupported()) shadowRecord(x.s.t, {std: done=>dlgPlayClip(x.s, 1, done)});
+  else dlgStart(dlgSel, dlgSel + 1, 'repeat');
+}
+/* Phát các câu from..to-1. Gọi trong cú chạm (mở khoá âm thanh cho iPhone). Phát hết cả bài từ câu đầu là 1 lượt. */
+function dlgStart(from, to, mode){
+  stopSpeaking(); clearTakes();
+  unlockMyAudio(); unlockSpeech();
+  const tok = ++dlgTok;
+  dlgPlaying = true;
+  renderDlgPlay();
+  const rate = mode === 'repeat' ? DLG_SLOW : 1;
+  const step = i=>{
+    if(tok !== dlgTok) return;
+    if(i >= to){ dlgFinish(from === 0 && to === dlgFlat.length ? mode : null); return; }
+    const x = dlgFlat[i];
+    dlgSel = dlgCur = i;
+    dlgHighlight(true);
+    setDlgStatus(mode === 'shadow' ? 'Nói cùng lúc...' : 'Nghe...');
+    dlgPlayClip(x.s, rate, ()=>{
+      if(tok !== dlgTok) return;
+      let gap;
+      if(mode === 'repeat'){
+        gap = x.s.d / rate * 1200 + 1000;              // dài hơn câu vừa nghe 20%, cộng 1 giây
+        dlgCur = -1; dlgHighlight();
+        setDlgStatus('Đến lượt bạn nhắc lại...');
+      } else gap = i + 1 >= to ? 0 : dlgFlat[i + 1].li === x.li ? 350 : 700;   // nghỉ ngắn trong lượt lời, dài hơn khi đổi người
+      dlgTimer = setTimeout(()=>step(i + 1), gap);
+    });
+  };
+  step(from);
+}
+function dlgFinish(doneMode){
+  dlgPlaying = false; dlgCur = -1;
+  dlgHighlight(); renderDlgPlay();
+  if(doneMode){
+    dlgSel = 0; dlgHighlight();
+    dlgRecord(doneMode);
+    setDlgStatus(`Xong 1 lượt ${DLG_MODES[doneMode]}.`);
+  } else setDlgStatus('');
+}
+function dlgHalt(){
+  dlgTok++;
+  dlgPlaying = false;
+  clearTimeout(dlgTimer);
+  dlgCur = -1;
+  dlgHighlight(); renderDlgPlay(); setDlgStatus('');
+}
+/* Phát 1 câu bằng file mp3 (thẻ <audio> dùng chung, đã mở khoá); không tải/phát được thì đọc bằng giọng máy.
+   done() chỉ gọi khi không bị dừng giữa chừng (stopSpeaking() tăng myPlayRun). */
+function dlgPlayClip(s, rate, done){
+  const run = myPlayRun;
+  const a = myAudioEl || (myAudioEl = new Audio());
+  let fin = false, guard = null;
+  const end = ()=>{
+    if(fin) return;
+    fin = true; clearTimeout(guard);
+    if(run !== myPlayRun) return;
+    if(myAudio === a) myAudio = null;
+    if(done) done();
+  };
+  const fallback = ()=>{
+    if(fin) return;
+    fin = true; clearTimeout(guard);
+    if(run !== myPlayRun) return;
+    if(myAudio === a){ try{ a.pause(); }catch(e){} myAudio = null; }
+    dlgSpeak(s.t, done);
+  };
+  dlgClipUrl(s.a).then(url=>{
+    if(fin || run !== myPlayRun) return;
+    a.muted = false;
+    a.src = url;
+    a.defaultPlaybackRate = a.playbackRate = rate;
+    myAudio = a;
+    a.onended = end;
+    a.onerror = fallback;
+    guard = setTimeout(()=>{ try{ a.pause(); }catch(e){} end(); }, s.d / rate * 1000 + 4000);   // chống treo như speakGuard
+    a.play().catch(fallback);
+  }, fallback);
+}
+function dlgSpeak(text, done){
+  if(!('speechSynthesis' in window)){ if(done) done(); return; }
+  if(!usVoice) refreshUSVoice();
+  const run = myPlayRun, u = new SpeechSynthesisUtterance(text);
+  u.lang = usVoice ? usVoice.lang : 'en-US';
+  if(usVoice) u.voice = usVoice;
+  u.rate = SPEAK_RATES[speakRateName];
+  let fin = false;
+  const end = ()=>{ if(fin) return; fin = true; clearTimeout(g); if(run === myPlayRun && done) done(); };
+  const g = setTimeout(()=>{ try{ speechSynthesis.cancel(); }catch(e){} end(); }, text.length * 100 / u.rate + 3000);
+  u.onend = u.onerror = end;
+  speechSynthesis.speak(u);
 }
 
 /* ============================================================
