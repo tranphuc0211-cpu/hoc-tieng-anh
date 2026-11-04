@@ -448,21 +448,27 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   }
 
   /* ============================================================
-     THEME GIÁNG SINH — đỏ san hô + xanh thông, tuyết rơi, mũ Noel
+     THEME GIÁNG SINH — đỏ Noel chủ đạo, tuyết rơi, mũ Noel
      Bật/tắt ở Cài đặt → Giao diện (html[data-theme="xmas"]).
      Mọi cặp chữ/nền đã kiểm tra tương phản ≥ 4.5:1 (WCAG AA).
   ============================================================ */
   html[data-theme="xmas"]{
-    --bg:#F6F5EF; --border:#E4E8E1;
-    --ink:#22302A; --ink-2:#4B5A52; --ink-3:#5F6E66;
-    --lav-50:#EEF5F0; --lav-100:#DCEDE2; --lav-200:#C2DECB; --lav-ink:#1D4A33; --lav-accent:#1E6B45;
-    --peach:#F08A80; --peach-hover:#EC7469; --peach-100:#FCE6E3; --peach-ink:#4E0D10;
-    --new-bg:#EAEDE8; --new-ink:#3F4D45;
-    --shadow:0 6px 20px rgba(30,70,50,.08); --shadow-lg:0 12px 32px rgba(30,70,50,.14);
+    --bg:#F7F3EE; --border:#EFE2DF;
+    --ink:#2E2222; --ink-2:#5A4848; --ink-3:#6E5B5B;
+    --lav-50:#FCF0EF; --lav-100:#F9DFDC; --lav-200:#F1C3BE; --lav-ink:#7A1622; --lav-accent:#B71C2C;
+    --peach:#C62A36; --peach-hover:#AE1F2B; --peach-100:#FBE3E1; --peach-ink:#FFFFFF;
+    --new-bg:#F0EAE8; --new-ink:#4F4040;
+    --shadow:0 6px 20px rgba(120,30,40,.08); --shadow-lg:0 12px 32px rgba(120,30,40,.14);
   }
-  html[data-theme="xmas"] .app-header{background:rgba(246,245,239,.92);}
-  html[data-theme="xmas"] .face.front{background:linear-gradient(160deg,var(--lav-100),#F0F7F2);}
-  html[data-theme="xmas"] .session-fill{background:linear-gradient(90deg,var(--peach),#F6B5AE);}
+  /* Thanh tiêu đề đỏ Noel, chữ trắng */
+  html[data-theme="xmas"] .app-header{background:#B71C2C;border-bottom-color:#9E1726;}
+  html[data-theme="xmas"] .brand{color:#fff;}
+  html[data-theme="xmas"] .brand-logo{background:#fff;color:#B71C2C;}
+  /* Chữ trắng của nút đỏ không đọc được trên nền đỏ nhạt -> các chỗ nền nhạt dùng chữ đỏ sẫm */
+  html[data-theme="xmas"] .today-streak, html[data-theme="xmas"] .speak-takes .speak-small.mine,
+  html[data-theme="xmas"] .dlg-line.b .dlg-who, html[data-theme="xmas"] .badge.grammar{color:var(--lav-ink);}
+  html[data-theme="xmas"] .face.front{background:linear-gradient(160deg,var(--lav-100),#FDF3F2);}
+  html[data-theme="xmas"] .session-fill{background:linear-gradient(90deg,var(--peach),#E8737B);}
   /* Tuyết rơi: nằm sau nội dung (z-index:-1), không nhận chạm */
   .xmas-snow{display:none;position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;}
   html[data-theme="xmas"] .xmas-snow{display:block;}
@@ -544,7 +550,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 <div class="xmas-snow" id="xmasSnow" aria-hidden="true"></div>
 <header class="app-header">
   <div class="app-header-inner">
-    <div class="brand"><span class="brand-logo"><svg class="ic"><use href="#i-book"/></svg><svg class="brand-hat" viewBox="0 0 30 26" aria-hidden="true"><path d="M4 19C7 9 15 2 25 4c-2 4-3 9-1 15z" fill="#D42A3A"/><rect x="1.5" y="17" width="25" height="7" rx="3.5" fill="#fff" stroke="#E2E2E2"/><circle cx="25.5" cy="4.5" r="3.5" fill="#fff" stroke="#E2E2E2"/></svg></span>Học Tiếng Anh</div>
+    <div class="brand"><span class="brand-logo"><svg class="ic"><use href="#i-book"/></svg><svg class="brand-hat" viewBox="0 0 30 26" aria-hidden="true"><path d="M4 19C7 9 15 2 25 4c-2 4-3 9-1 15z" fill="#E53945" stroke="#fff" stroke-width="1.2"/><rect x="1.5" y="17" width="25" height="7" rx="3.5" fill="#fff" stroke="#E2E2E2"/><circle cx="25.5" cy="4.5" r="3.5" fill="#fff" stroke="#E2E2E2"/></svg></span>Học Tiếng Anh</div>
     <button class="sync-pill" id="syncPill" data-state="pending" onclick="switchView('settings')"><span class="sync-dot"></span><span id="syncStatus">Đang kết nối...</span></button>
   </div>
 </header>
@@ -2595,6 +2601,8 @@ function applyXmasTheme(on){
   if(on) document.documentElement.dataset.theme = 'xmas';
   else delete document.documentElement.dataset.theme;
   setSegActive('themeSeg', on ? 'xmas' : 'pastel');
+  const meta = document.querySelector('meta[name="theme-color"]');   // màu thanh trình duyệt khớp thanh tiêu đề
+  if(meta) meta.content = on ? '#B71C2C' : '#FBF8F4';
   if(on) buildSnow();
 }
 /* Tạo các bông tuyết một lần; mỗi bông có vị trí, cỡ, tốc độ ngẫu nhiên.
