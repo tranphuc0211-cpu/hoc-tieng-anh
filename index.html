@@ -448,27 +448,24 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   }
 
   /* ============================================================
-     THEME GIÁNG SINH — đỏ Noel chủ đạo, tuyết rơi, mũ Noel
+     THEME GIÁNG SINH — xanh da trời nhạt, tuyết rơi, mũ Noel
      Bật/tắt ở Cài đặt → Giao diện (html[data-theme="xmas"]).
      Mọi cặp chữ/nền đã kiểm tra tương phản ≥ 4.5:1 (WCAG AA).
   ============================================================ */
   html[data-theme="xmas"]{
-    --bg:#F7F3EE; --border:#EFE2DF;
-    --ink:#2E2222; --ink-2:#5A4848; --ink-3:#6E5B5B;
-    --lav-50:#FCF0EF; --lav-100:#F9DFDC; --lav-200:#F1C3BE; --lav-ink:#7A1622; --lav-accent:#B71C2C;
-    --peach:#C62A36; --peach-hover:#AE1F2B; --peach-100:#FBE3E1; --peach-ink:#FFFFFF;
-    --new-bg:#F0EAE8; --new-ink:#4F4040;
-    --shadow:0 6px 20px rgba(120,30,40,.08); --shadow-lg:0 12px 32px rgba(120,30,40,.14);
+    --bg:#F1F7FC; --border:#D8E7F3;
+    --ink:#1E2B38; --ink-2:#435466; --ink-3:#56687C;
+    --lav-50:#EDF6FD; --lav-100:#D9EEFB; --lav-200:#B9DDF4; --lav-ink:#164E78; --lav-accent:#1F6FA8;
+    --peach:#9FD3F5; --peach-hover:#86C6F0; --peach-100:#E0F1FC; --peach-ink:#0E3A5A;
+    --new-bg:#E6EEF5; --new-ink:#3E5266;
+    --shadow:0 6px 20px rgba(40,90,140,.08); --shadow-lg:0 12px 32px rgba(40,90,140,.14);
   }
-  /* Thanh tiêu đề đỏ Noel, chữ trắng */
-  html[data-theme="xmas"] .app-header{background:#B71C2C;border-bottom-color:#9E1726;}
-  html[data-theme="xmas"] .brand{color:#fff;}
-  html[data-theme="xmas"] .brand-logo{background:#fff;color:#B71C2C;}
-  /* Chữ trắng của nút đỏ không đọc được trên nền đỏ nhạt -> các chỗ nền nhạt dùng chữ đỏ sẫm */
-  html[data-theme="xmas"] .today-streak, html[data-theme="xmas"] .speak-takes .speak-small.mine,
-  html[data-theme="xmas"] .dlg-line.b .dlg-who, html[data-theme="xmas"] .badge.grammar{color:var(--lav-ink);}
-  html[data-theme="xmas"] .face.front{background:linear-gradient(160deg,var(--lav-100),#FDF3F2);}
-  html[data-theme="xmas"] .session-fill{background:linear-gradient(90deg,var(--peach),#E8737B);}
+  /* Thanh tiêu đề xanh da trời nhạt, chữ xanh đậm */
+  html[data-theme="xmas"] .app-header{background:#BFE3F8;border-bottom-color:#A6D4F0;}
+  html[data-theme="xmas"] .brand{color:#0E3A5A;}
+  html[data-theme="xmas"] .brand-logo{background:#fff;color:var(--lav-accent);}
+  html[data-theme="xmas"] .face.front{background:linear-gradient(160deg,var(--lav-100),#F6FBFE);}
+  html[data-theme="xmas"] .session-fill{background:linear-gradient(90deg,var(--lav-accent),#5BB0E6);}
   /* Tuyết rơi: nằm sau nội dung (z-index:-1), không nhận chạm */
   .xmas-snow{display:none;position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;}
   html[data-theme="xmas"] .xmas-snow{display:block;}
@@ -484,16 +481,22 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   /* Tuyết bám trên nút, logo và các khối: mỗi bông rơi trúng để lại một ụ tuyết nhỏ đúng chỗ chạm,
      các ụ chồng lên nhau thành lớp dày không đều, ôm theo mép cong (snowLand). Hình lớp tuyết là
      một SVG do JS vẽ, đặt vào biến --snow-bg của từng khối. :where() = độ ưu tiên 0, không đè vị trí sẵn có. */
-  :where(html[data-theme="xmas"]) :where(.brand-logo,.btn:not(.btn-danger-text),.mode-tile,.chip,.filter-btn,.today-streak,.due-pill,.opt-btn,.speak-small,.sync-pill,.search-box,.stats-sum div,.quiz-detail,.segmented,.round-btn .circle,.fab,.speak-btn,.pin-key,.card,.flip-wrap,.pin-logo){position:relative;}
-  html[data-theme="xmas"] :is(.brand-logo,.btn:not(.btn-danger-text),.mode-tile,.chip,.filter-btn,.today-streak,.due-pill,.opt-btn,.speak-small,.sync-pill,.search-box,.stats-sum div,.quiz-detail,.segmented,.round-btn .circle,.fab,.speak-btn,.pin-key,.card,.flip-wrap,.pin-logo)::before{
+  :where(html[data-theme="xmas"]) :where(.brand-logo,.btn:not(.btn-danger-text),.mode-tile,.chip,.filter-btn,.today-streak,.due-pill,.opt-btn,.speak-small,.sync-pill,.search-box,.stats-sum div,.quiz-detail,.segmented,.round-btn .circle,.fab,.speak-btn,.pin-key:not(.ghost),.card,.flip-wrap,.pin-logo):where(:not(.face *)){position:relative;}
+  html[data-theme="xmas"] :is(.brand-logo,.btn:not(.btn-danger-text),.mode-tile,.chip,.filter-btn,.today-streak,.due-pill,.opt-btn,.speak-small,.sync-pill,.search-box,.stats-sum div,.quiz-detail,.segmented,.round-btn .circle,.fab,.speak-btn,.pin-key:not(.ghost),.card,.flip-wrap,.pin-logo)::before{
     content:"";position:absolute;top:-16px;left:0;right:0;height:36px;pointer-events:none;z-index:1;
     background:var(--snow-bg,none) no-repeat 0 0/100% 100%;filter:drop-shadow(0 1px 1px rgba(70,100,130,.35));
   }
   html[data-theme="xmas"] .brand-hat{z-index:2;}
   /* Thẻ học (.face) cắt phần tràn, nên tuyết đặt trên khung bọc ngoài; bo góc như thẻ để tuyết ôm đúng góc */
   html[data-theme="xmas"] .flip-wrap{border-radius:24px;}
-  /* Bông tuyết đang rơi: chấm trắng mềm, viền mờ xanh xám để thấy được trên nền sáng */
-  .snow-drop{position:fixed;left:0;top:0;z-index:25;pointer-events:none;border-radius:50%;background:#fff;
+  /* Nút nằm trên mặt thẻ: không có tuyết. Trên iPhone, lớp tuyết của mặt đang úp lộ ngược sang mặt kia */
+  html[data-theme="xmas"] .face :is(.btn,.speak-small,.speak-btn,.chip)::before{content:none;}
+  /* Đang lật thẻ: tạm ẩn lớp tuyết trên thẻ (khung bọc không xoay theo thẻ) */
+  html[data-theme="xmas"] .flip-wrap::before{transition:opacity .15s;}
+  html[data-theme="xmas"] .flip-wrap.snow-hide::before{opacity:0;}
+  /* Bông tuyết đang rơi: chấm trắng mềm, viền mờ xanh xám để thấy được trên nền sáng.
+     Nằm trên cả cửa sổ trượt (50) và màn hình mã PIN (100), vì tuyết cũng bám lên các khối ở đó */
+  .snow-drop{position:fixed;left:0;top:0;z-index:120;pointer-events:none;border-radius:50%;background:#fff;
     box-shadow:0 0 0 .5px rgba(110,140,170,.45),0 0 3px 1px rgba(110,140,170,.35);}
 
   @media (prefers-reduced-motion: reduce){
@@ -2610,13 +2613,14 @@ function isXmasTheme(){ return document.documentElement.dataset.theme === 'xmas'
 function setXmasTheme(on){
   safeSet(XMAS_THEME_KEY, on ? '1' : '0');
   applyXmasTheme(on);
+  if(!on){ document.querySelectorAll('.snow-drop').forEach(d=>d.remove()); snowDrops = 0; }   // bông đang rơi biến luôn
 }
 function applyXmasTheme(on){
   if(on) document.documentElement.dataset.theme = 'xmas';
   else delete document.documentElement.dataset.theme;
   setSegActive('themeSeg', on ? 'xmas' : 'pastel');
   const meta = document.querySelector('meta[name="theme-color"]');   // màu thanh trình duyệt khớp thanh tiêu đề
-  if(meta) meta.content = on ? '#B71C2C' : '#FBF8F4';
+  if(meta) meta.content = on ? '#BFE3F8' : '#FBF8F4';
   if(on) buildSnow();
 }
 /* Tạo các bông tuyết một lần; mỗi bông có vị trí, cỡ, tốc độ ngẫu nhiên.
@@ -2639,22 +2643,25 @@ applyXmasTheme(safeGet(XMAS_THEME_KEY) !== '0');
    một khối đang thấy; khối rộng hứng nhiều bông hơn. Khi chạm, bông thành một ụ tuyết nhỏ đúng chỗ
    đó (cộng vào bản đồ độ dày snowMaps của khối), rồi vẽ lại hình lớp tuyết thành SVG trong --snow-bg.
    Mép cong (nút tròn, góc bo) theo đúng đường cong; chỗ dốc giữ ít tuyết hơn, quá dốc thì không bám.
-   Khoảng 2 phút thì phủ gần kín. Khối bị vẽ lại thì bắt đầu lại từ đầu.
+   Khoảng 2 phút thì phủ gần kín. Khối bị vẽ lại thì bắt đầu lại từ đầu; khối đổi bề rộng thì
+   lớp tuyết được co giãn theo. Nút nằm trên mặt thẻ (.face) không có tuyết.
    Giữ danh sách này khớp với bộ chọn ::before trong CSS (Tuyết bám). */
-const SNOW_TARGETS = '.brand-logo,.btn:not(.btn-danger-text),.mode-tile,.filter-btn,.today-streak,.due-pill,.opt-btn,.speak-small,.sync-pill,.search-box,.stats-sum div,.quiz-detail,.segmented,.round-btn .circle,.fab,.speak-btn,.pin-key,.card,.flip-wrap,.pin-logo,.chip:not(.list-filters .chip)';
+const SNOW_TARGETS = '.brand-logo,.btn:not(.btn-danger-text),.mode-tile,.filter-btn,.today-streak,.due-pill,.opt-btn,.speak-small,.sync-pill,.search-box,.stats-sum div,.quiz-detail,.segmented,.round-btn .circle,.fab,.speak-btn,.pin-key:not(.ghost),.card,.flip-wrap,.pin-logo,.chip:not(.list-filters .chip)';
 const SNOW_TOP = 16, SNOW_H = 36, SNOW_STEP = 2;   // khớp top/height của ::before
 const snowMaps = new WeakMap();
 let snowDrops = 0;
 function snowMap(el){
   const w = el.clientWidth, hgt = el.clientHeight;
-  let m = snowMaps.get(el);
-  if(m && m.w === w) return m;
+  const old = snowMaps.get(el);
+  if(!w || el.closest('.face')) return null;                  // đang ẩn: giữ nguyên tuyết cũ; nút trên mặt thẻ: không có tuyết
+  if(old && old.w === w) return old;
   const cs = getComputedStyle(el), rr = cs.borderTopLeftRadius;
   let r = rr.endsWith('%') ? parseFloat(rr) / 100 * w : parseFloat(rr) || 0;
   r = Math.min(r, w / 2, hgt / 2);
   const n = Math.floor(w / SNOW_STEP) + 1;
   const maxOff = Math.min(12, Math.max(3, r * 0.3));          // mép dốc hơn thế thì tuyết trượt xuống
-  const cap = Math.min(12, 5 + w * 0.02);                       // độ dày tối đa ở chỗ phẳng
+  // độ dày tối đa ở chỗ phẳng; các ô đáp án xếp sát nhau (cách 10 px) nên mỏng hơn
+  const cap = el.classList.contains('opt-btn') ? 6 : Math.min(10, 4 + w * 0.02);
   const surf = new Float32Array(n), capL = new Float32Array(n);
   for(let i=0;i<n;i++){
     const x = i * SNOW_STEP;
@@ -2663,8 +2670,12 @@ function snowMap(el){
     capL[i] = surf[i] > maxOff ? 0 : cap * Math.sqrt(1 - surf[i] / maxOff);
   }
   let capSum = 0; capL.forEach(v=>capSum += v);
-  m = {w, n, surf, capL, capSum, h: new Float32Array(n), top: SNOW_TOP - el.clientTop};
+  const m = {w, n, surf, capL, capSum, h: new Float32Array(n), top: SNOW_TOP - el.clientTop};
   snowMaps.set(el, m);
+  if(old){                                                      // đổi bề rộng: co giãn tuyết cũ theo
+    for(let i=0;i<n;i++) m.h[i] = Math.min(capL[i], old.h[Math.min(old.n - 1, Math.round(i * (old.n - 1) / Math.max(1, n - 1)))]);
+    snowDraw(el, m);
+  }
   return m;
 }
 function snowFull(m){ let s = 0; m.h.forEach(v=>s += v); return s >= m.capSum * 0.85; }
@@ -2675,6 +2686,9 @@ function snowLand(el, m, x){
     const d = (i * SNOW_STEP - x) / R;
     if(d*d < 1) m.h[i] = Math.min(m.capL[i], m.h[i] + a * (1 - d*d) * (0.75 + Math.random() * 0.5));
   }
+  snowDraw(el, m);
+}
+function snowDraw(el, m){
   // vẽ lại: mặt trên = mép khối trừ độ dày, mặt dưới lấn 1,5 px vào khối để không hở
   let top = '', bot = '';
   for(let i=0;i<m.n;i++){
@@ -2682,7 +2696,10 @@ function snowLand(el, m, x){
     top += (i ? 'L' : 'M') + x2 + ' ' + (y - m.h[i]).toFixed(1);
     bot = 'L' + x2 + ' ' + (y + (m.h[i] > 0.2 ? 1.5 : 0)).toFixed(1) + bot;
   }
-  const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 " + m.w + " " + SNOW_H + "' preserveAspectRatio='none'><path d='" + top + bot + "Z' fill='#fff'/></svg>";
+  // trắng ở mặt trên, ngả xanh nhạt ở chân: vẫn thấy được khi nằm trên nền trắng
+  const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 " + m.w + " " + SNOW_H + "' preserveAspectRatio='none'>"
+    + "<linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='.35' stop-color='#fff'/><stop offset='1' stop-color='#D6E7F5'/></linearGradient>"
+    + "<path d='" + top + bot + "Z' fill='url(#g)'/></svg>";
   el.style.setProperty('--snow-bg', 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")');
 }
 function snowTick(){
@@ -2693,7 +2710,7 @@ function snowTick(){
     const r = el.getBoundingClientRect();
     if(r.width < 20 || r.top < 8 || r.top > H - 60 || r.right < 0 || r.left > W) return;
     const m = snowMap(el);
-    if(snowFull(m)) return;
+    if(!m || snowFull(m)) return;
     list.push({el, r, m}); total += r.width;
   });
   if(!list.length) return;
@@ -2710,7 +2727,7 @@ function snowTick(){
   const hit = document.elementFromPoint(sx, t.r.top + t.m.surf[xi] + 3);   // bị che thì bỏ qua
   if(!hit || !(hit === t.el || t.el.contains(hit))) return;
   const size = 3 + Math.random() * 3.5;
-  const y0 = Math.max(-10, sy - 160 - Math.random() * 120);
+  const y0 = Math.max(-10, sy - 100 - Math.random() * 80);
   const dur = (sy - y0) / (40 + Math.random() * 30) * 1000;
   const amp = 6 + Math.random() * 10, ph = Math.random() * 6.28, cyc = 1.2 + Math.random() * 1.5;
   const frames = [];
@@ -2725,11 +2742,22 @@ function snowTick(){
   document.body.appendChild(d);
   snowDrops++;
   d.animate(frames, {duration: dur, easing:'linear'}).onfinish = ()=>{
+    if(!d.isConnected) return;                                  // đã dọn khi tắt theme
     d.remove(); snowDrops--;
-    if(t.el.isConnected && isXmasTheme()) snowLand(t.el, snowMap(t.el), x);
+    if(!t.el.isConnected || !isXmasTheme()) return;
+    const r = t.el.getBoundingClientRect();                     // khối đã trôi đi (cuộn trang) thì bông tan, không bám
+    if(Math.abs(r.top - t.r.top) > 3 || Math.abs(r.left - t.r.left) > 3) return;
+    const m = snowMap(t.el);
+    if(m) snowLand(t.el, m, x);
   };
 }
 setInterval(snowTick, 300);
+(function(){
+  const wrap = document.getElementById('fcFlipWrap'), inner = wrap && wrap.querySelector('.flip-inner');
+  if(!inner) return;
+  inner.addEventListener('transitionrun', e=>{ if(e.target === inner) wrap.classList.add('snow-hide'); });
+  ['transitionend','transitioncancel'].forEach(ev=>inner.addEventListener(ev, e=>{ if(e.target === inner) wrap.classList.remove('snow-hide'); }));
+})();
 
 /* ============================================================
    QUIZ VIEW
