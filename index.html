@@ -276,7 +276,6 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .say-body{margin:6px 0 14px;}
   .say-term{font-size:26px;font-weight:800;color:var(--ink);}
   .say-meaning{font-size:18px;font-weight:700;color:var(--lav-ink);margin-top:4px;}
-  .say-sentence{font-size:19px;line-height:1.5;color:var(--ink);margin-top:10px;}
   .say-count{font-size:40px;font-weight:800;color:var(--lav-accent);min-height:48px;}
   .say-rate{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
   .say-rate:empty{display:none;}
@@ -436,7 +435,6 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     .say-hint{font-size:14px;margin-bottom:6px;}
     .say-body{margin:2px 0 8px;}
     .say-term{font-size:22px;}
-    .say-sentence{font-size:17px;margin-top:4px;}
     .say-count{font-size:32px;min-height:36px;}
     .say-modal .speak-status:empty{display:none;}
     .say-rate{margin-top:8px;}
@@ -1017,7 +1015,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 <!-- Cụm hôm nay: hiện sau khi nhập PIN, luyện nói 1 cụm (xem phần CỤM HÔM NAY trong script) -->
 <div class="modal-overlay" id="sayOverlay" onclick="if(event.target===this) closeSay()">
   <div class="modal say-modal">
-    <div class="say-top"><span class="say-tag" id="sayTag"></span><span id="sayStepNo"></span></div>
+    <div class="say-top"><span class="say-tag" id="sayTag"></span></div>
     <h3 id="sayTitle"></h3>
     <p class="muted say-hint" id="sayHint"></p>
     <div class="say-body" id="sayBody"></div>
@@ -1027,7 +1025,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="say-rate" id="sayRate"></div>
     <div class="modal-actions" style="justify-content:space-between;">
       <button class="btn btn-outline" onclick="closeSay()">Để sau</button>
-      <button class="btn btn-primary" id="sayNextBtn" onclick="sayGoNext()">Tiếp</button>
+      <button class="btn btn-primary" id="sayNextBtn" onclick="sayGoNext()">Xong</button>
     </div>
   </div>
 </div>
@@ -2091,12 +2089,13 @@ function playBeep(){
     setTimeout(done, 300);
   });
 }
-/* Ghi một lượt: tự dừng khi người học nói xong (im lặng ~1,5 giây). Chưa ai nói sau giveUpMs thì bỏ lượt này;
-   đang nói dở thì tối đa capMs. cb(blob) — blob = null nếu không nghe thấy tiếng nói.
-   Nếu bộ nghe mức âm không hoạt động (ctx bị treo hoặc luôn báo 0, hay gặp trên iPhone) thì không phát hiện được lúc nào
-   nói xong: ghi trọn khoảng giveUpMs và giữ bản ghi.
-   silenceMs: im lặng bao lâu thì coi là nói xong (câu tự đặt ở Cụm hôm nay cần lâu hơn vì vừa nói vừa nghĩ). */
-function recordTurn(giveUpMs, capMs, cb, silenceMs = 1500){
+/* Ghi một lượt: tự dừng khi người học nói xong (im lặng ~1,5 giây). Chưa nghe thấy ai nói sau giveUpMs thì dừng;
+   đang nói dở thì tối đa capMs. cb(blob, sure): blob = null chỉ khi máy không ghi được gì; sure = bộ nghe mức âm đã
+   nghe thấy tiếng nói. sure = false thì shadowRecord() tự nghe lại chính bản ghi (normalizeTake) rồi mới quyết định giữ
+   hay bỏ: trên iPhone, lần nói đầu sau khi mở micro bộ nghe mức âm hay báo sai (quá nhỏ hoặc 0) dù bản ghi vẫn có tiếng,
+   trước đây bản ghi đó bị bỏ và hiện "Chưa ghi được giọng bạn" (anh Phúc, 2026-11-07).
+   Bộ nghe mức âm không hoạt động (ctx bị treo hoặc luôn báo 0) thì không phát hiện được lúc nào nói xong: ghi trọn giveUpMs. */
+function recordTurn(giveUpMs, capMs, cb){
   const {stream, analyser} = sessionMic, ctx = speakCtx;
   const buf = analyser ? new Float32Array(analyser.fftSize) : null;
   let blind = !analyser || (ctx && ctx.state && ctx.state !== 'running');   // không đo được mức âm
@@ -2109,7 +2108,7 @@ function recordTurn(giveUpMs, capMs, cb, silenceMs = 1500){
     clearInterval(poll);
     if(speakRecording === handle) speakRecording = null;
     const type = rec.mimeType || (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm');
-    if(!cancelled) cb((heard || blind) && parts.length ? new Blob(parts, {type}) : null);
+    if(!cancelled) cb(parts.length ? new Blob(parts, {type}) : null, heard);
   };
   const poll = setInterval(()=>{
     const t = performance.now() - t0;
@@ -2130,11 +2129,10 @@ function recordTurn(giveUpMs, capMs, cb, silenceMs = 1500){
         if(!heard && loud > thr){ heard = true; lastVoice = Math.max(lastVoice, loudT); }   // kể cả khi nói từ khung đầu tiên
       }
     }
-    if(blind ? t > giveUpMs : ((heard && t - lastVoice > silenceMs) || (!heard && t > giveUpMs) || t > capMs)){ try{ rec.stop(); }catch(e){} }
+    if(blind ? t > giveUpMs : ((heard && t - lastVoice > 1500) || (!heard && t > giveUpMs) || t > capMs)){ try{ rec.stop(); }catch(e){} }
   }, 50);
   const handle = {
     cancel: ()=>{ cancelled = true; clearInterval(poll); try{ if(rec.state !== 'inactive') rec.stop(); }catch(e){} },
-    finish: ()=>{ heard = true; try{ if(rec.state !== 'inactive') rec.stop(); }catch(e){} },   // người học bấm "nói xong": giữ bản ghi
   };
   speakRecording = handle;
   rec.start();
@@ -2148,16 +2146,18 @@ function recordTurn(giveUpMs, capMs, cb, silenceMs = 1500){
    - đo theo khung 20 ms, chỉ lấy khung có tiếng nói, đưa về mức TAKE_RMS;
    - không nhân quá TAKE_MAX_GAIN lần (để không khuếch đại tiếng ồn) và không để 99,9% mẫu vượt ~98%;
    - vài đỉnh hiếm còn vượt 0,8 thì nén êm thay vì cắt cụt.
-   Ghi lại thành WAV để vẫn phát bằng thẻ <audio> như cũ. Trả {blob, ok}: ok = false khi không chỉnh được (giải mã lỗi),
-   lúc đó giữ nguyên bản ghi gốc. */
+   Ghi lại thành WAV để vẫn phát bằng thẻ <audio> như cũ. Trả {blob, ok, voice}: ok = false khi không chỉnh được (giải mã
+   lỗi), lúc đó giữ nguyên bản ghi gốc; voice = bản ghi có tiếng nói (khung to nhất ≥ 0,01 và ≥ 3 lần khung nhỏ nhất),
+   giải mã lỗi thì coi như có. */
 const TAKE_RMS = 0.15, TAKE_MAX_GAIN = 10;
 function normalizeTake(blob){
   return new Promise(done=>{
     try{
       const AC = window.AudioContext || window.webkitAudioContext;
-      if(!AC || !blob.arrayBuffer){ done({blob, ok:false}); return; }
+      if(!AC || !blob.arrayBuffer){ done({blob, ok:false, voice:true}); return; }
       const ctx = speakCtx || new AC();
-      const finish = (out, ok)=>{ if(ctx !== speakCtx){ try{ ctx.close(); }catch(e){} } done({blob: out, ok}); };
+      let voice = true;
+      const finish = (out, ok)=>{ if(ctx !== speakCtx){ try{ ctx.close(); }catch(e){} } done({blob: out, ok, voice}); };
       blob.arrayBuffer().then(buf=>{
         const p = ctx.decodeAudioData(buf, audio=>{
           try{
@@ -2173,8 +2173,9 @@ function normalizeTake(blob){
             for(let k=skip; k<n; k++) mags[k - skip] = Math.abs(x[k]);
             mags.sort();
             const p999 = mags.length ? mags[Math.min(mags.length - 1, Math.floor(mags.length * 0.999))] : 0;
-            if(p999 < 0.001){ finish(blob, true); return; }     // gần như im lặng: không khuếch đại tiếng ồn
             const levels = frames.map(f=>Math.sqrt(f.sum / f.len)).sort((a,b)=>a-b);
+            voice = levels.length > 0 && levels[levels.length - 1] >= Math.max(0.01, 3 * levels[0]);
+            if(p999 < 0.001){ voice = false; finish(blob, true); return; }     // gần như im lặng: không khuếch đại tiếng ồn
             const floor = Math.max(0.002, 0.2 * levels[Math.min(levels.length - 1, Math.floor(levels.length * 0.95))]);
             let vSum = 0, vLen = 0;
             frames.forEach(f=>{ if(Math.sqrt(f.sum / f.len) >= floor){ vSum += f.sum; vLen += f.len; } });
@@ -2197,7 +2198,7 @@ function normalizeTake(blob){
         }, ()=>finish(blob, false));
         if(p && p.catch) p.catch(()=>{});             // Chrome trả thêm một lời hứa bị từ chối khi giải mã lỗi: đã xử lý ở trên
       }, ()=>finish(blob, false));
-    }catch(e){ done({blob, ok:false}); }
+    }catch(e){ done({blob, ok:false, voice:true}); }
   });
 }
 
@@ -2315,9 +2316,8 @@ function speakText(text, opts){
 }
 /* "Đọc theo" có ghi âm: KHÔNG đọc lại âm chuẩn, bấm là bíp rồi ghi giọng người học ngay.
    Máy tính: micro mở 1 lần cho cả phiên, giữa các lượt chỉ tắt tiếng. iPhone: đóng hẳn sau mỗi lượt (xem MIC_CLOSE_EACH_TAKE).
-   opts (dùng cho Cụm hôm nay): wait = thời gian chờ người học nói (ms), onStart() lúc bắt đầu ghi, onTake() khi có bản ghi,
-   mineOnly = chỉ tự phát Giọng bạn (câu tự đặt, không có âm chuẩn để so); giveUp / cap / silence (ms) thay các mốc mặc định
-   của recordTurn cho câu tự nói dài; std(done) = phát âm chuẩn bằng file thay cho giọng máy (Hội thoại shadowing). */
+   opts (dùng cho Cụm hôm nay): wait = thời gian chờ người học nói (ms), onStart() lúc bắt đầu ghi, onTake() khi có bản ghi;
+   std(done) = phát âm chuẩn bằng file thay cho giọng máy (Hội thoại shadowing). */
 function shadowRecord(text, opts){
   opts = opts || {};
   stopSpeaking();
@@ -2342,18 +2342,20 @@ function shadowRecord(text, opts){
       if(opts.onStart) opts.onStart();
       // Thời gian chờ theo độ dài câu (tối thiểu 1,2 giây)
       const wait = opts.wait || Math.max(1200, text.length * 75 / SPEAK_RATES[speakRateName] + 500);
-      recordTurn(opts.giveUp || wait + 1200, opts.cap || wait + 4000, blob=>{
+      const notHeard = ()=>showTakes('<span class="take-note">Chưa ghi được giọng bạn. Hãy thử nói to hơn.</span>');
+      recordTurn(wait + 1200, wait + 4000, (blob, sure)=>{
         setMicOn(false);
         if(run !== speakRun) return;
         setSpeakUI(null);
         if(blob) normalizeTake(blob).then(r=>{
           if(run !== speakRun) return;                 // trong lúc chỉnh âm lượng, anh Phúc đã chuyển thẻ / bấm dừng
+          if(!sure && !r.voice){ notHeard(); return; } // bộ nghe mức âm không thấy tiếng, và bản ghi cũng không có tiếng
           myTakes.push({url: URL.createObjectURL(r.blob), ok: r.ok}); renderTakes();
           if(opts.onTake) opts.onTake();
-          if(opts.mineOnly) playMine(); else playCompare();
+          playCompare();
         });
-        else showTakes('<span class="take-note">Chưa ghi được giọng bạn. Hãy thử nói to hơn.</span>');
-      }, opts.silence);
+        else notHeard();
+      });
     });
   });
 }
@@ -3758,8 +3760,7 @@ let appStarted = false;
    không ghi thẳng lên cloud. Phải đọc hash ngay lúc tải trang, trước khi nhập PIN. */
 /* ============================================================
    CỤM HÔM NAY: mỗi lần mở app, luyện nói 1 cụm tới khi nằm lòng (anh Phúc, 2026-10-19)
-   5 bước, khoảng 2 phút: (1) nghe và nói theo, (2) che dần câu ví dụ, (3) chỉ nhìn nghĩa tiếng Việt mà nói ra rồi tự chấm,
-   (4) đổi dạng câu, (5) tự đặt câu về công việc. Chỉ bước 3 được chấm.
+   Một bước duy nhất (từ 2026-11-07, anh Phúc bỏ 4 bước sau): chỉ nhìn nghĩa tiếng Việt mà nói ra cụm tiếng Anh, rồi tự chấm.
    Tiến độ nằm ngay trong từng mục của DATA nên đồng bộ giữa các máy cùng dữ liệu từ vựng (mergeRemote() giữ bản có
    sayLast mới hơn): sayBox = số lần "Nói ngay" liên tiếp (hộp Leitner), sayNext = ngày ôn tới YYYY-MM-DD (null khi đã
    nằm lòng), sayLast = lúc chấm gần nhất. "Nói ngay" lên một hộp và ôn lại sau SAY_GAPS ngày; "Ngập ngừng" giữ hộp,
@@ -3769,8 +3770,7 @@ let appStarted = false;
 const SAY_GAPS = [1, 2, 4, 7, 14];
 const SAY_DONE = SAY_GAPS.length + 1;
 const SAY_PICK_KEY = 'tkmb_say_pick';     // cụm đã chọn hôm nay trên máy này: mở lại app vẫn là cụm đó tới khi chấm xong
-const SAY_TWISTS = ['Nói lại câu này ở thì quá khứ', 'Nói lại câu này ở dạng phủ định', 'Biến câu này thành câu hỏi', 'Nói lại câu này với chủ ngữ "We"'];
-let sayId = null, sayStep = 1, sayTakes = 0, sayRated = false, sayRevealed = false, sayTwist = '', sayCountTimer = null;
+let sayId = null, sayRated = false, sayRevealed = false, sayCountTimer = null;
 
 function sayMastered(d){ return (d.sayBox || 0) >= SAY_DONE; }
 function isPhrase(d){ return String(d.term || '').trim().split(/\s+/).length >= 2; }
@@ -3842,12 +3842,6 @@ function openSayList(){
 }
 function closeSayList(){ document.getElementById('sayListOverlay').classList.remove('show'); }
 function openSayFrom(id){ closeSayList(); openSay(true, id); }
-function sayText(it){ return hasExample(it) ? exampleSpeech(it) : it.term; }
-/* Che dần: mức 1 che một nửa số chữ, mức 2 che hết; chữ bị che chỉ còn chữ cái đầu */
-function sayMasked(text, level){
-  let k = 0;
-  return escapeHtml(text.replace(/[A-Za-z][A-Za-z']*/g, w=>(level === 2 || (level === 1 && k++ % 2 === 1)) ? w[0] + '_'.repeat(w.length - 1) : w));
-}
 function openSay(manual, id){
   const it = id ? DATA.find(d=>d.id === id) : currentSayItem();   // id: anh Phúc chọn từ danh sách, luyện ngay cụm đó
   if(!it){
@@ -3855,8 +3849,7 @@ function openSay(manual, id){
     return;
   }
   stopSpeaking(); clearTakes();
-  sayId = it.id; sayStep = 1; sayTakes = 0; sayRated = false; sayRevealed = false;
-  sayTwist = SAY_TWISTS[Math.floor(Math.random() * SAY_TWISTS.length)];
+  sayId = it.id; sayRated = false; sayRevealed = false;
   renderSay();
   document.getElementById('sayOverlay').classList.add('show');
 }
@@ -3868,60 +3861,30 @@ function closeSay(){
 function renderSay(){
   const it = sayItem();
   if(!it){ closeSay(); return; }
-  const term = escapeHtml(it.term), meaning = escapeHtml(it.meaning || ''), text = sayText(it);
-  const mic = label=>`<button class="speak-small shadow-btn" data-label="${label}" onclick="sayRecord()"><svg class="ic"><use href="#i-mic"/></svg><span>${label}</span></button>`;
-  const ear = `<button class="speak-btn" onclick="sayListen()" aria-label="Nghe"><svg class="ic"><use href="#i-volume"/></svg></button>`;
-  let title, hint, body, actions;
-  if(sayStep === 1){
-    title = 'Nhớ ra từ nghĩa tiếng Việt';
-    hint = 'Bấm Nói, nghe bíp là nói cụm tiếng Anh. Cố nói trong 3 giây.';
-    body = `<div class="say-meaning">${meaning}</div><div class="say-count" id="sayCount"></div>${sayRevealed ? `<div class="say-term">${term}</div>` : ''}`;
-    actions = mic('Nói') + (sayRevealed ? '' : '<button class="speak-small" onclick="sayReveal()">Hiện đáp án</button>');
-  } else if(sayStep === 2){
-    title = 'Nghe rồi nói theo';
-    hint = 'Bấm loa để nghe, rồi bấm Đọc theo. Ghi xong app tự phát âm chuẩn và giọng của bạn.';
-    body = `<div class="say-term">${term}</div>${it.phonetic ? `<div class="phonetic">${escapeHtml(it.phonetic)}</div>` : ''}<div class="say-meaning">${meaning}</div>`;
-    actions = ear + mic('Đọc theo');
-  } else if(sayStep === 3){
-    title = 'Che dần';
-    hint = sayTakes >= 3 ? 'Xong bước này, bấm Tiếp.' : `Đọc câu dưới đây. Mỗi lần đọc xong, app che bớt chữ (lượt ${sayTakes + 1}/3).`;
-    body = `<div class="say-sentence">${sayMasked(text, Math.min(sayTakes, 2))}</div>`;
-    actions = ear + mic('Đọc theo');
-  } else if(sayStep === 4){
-    title = 'Đổi dạng';
-    hint = (hasExample(it) ? sayTwist : 'Đặt một câu hỏi có dùng cụm này') + '. Nói xong bấm Dừng, app phát lại giọng của bạn.';
-    body = hasExample(it) ? `<div class="say-sentence">${escapeHtml(text)}</div>` : `<div class="say-term">${term}</div>`;
-    actions = mic('Nói');
-  } else {
-    title = 'Câu của tôi';
-    hint = 'Nói 1 câu về công việc của bạn hôm nay có dùng cụm này. Nói xong bấm Dừng.';
-    body = `<div class="say-term">${term}</div><div class="say-meaning">${meaning}</div>`;
-    actions = mic('Nói');
-  }
+  const term = escapeHtml(it.term), meaning = escapeHtml(it.meaning || '');
+  const title = 'Nhớ ra từ nghĩa tiếng Việt';
+  const hint = 'Bấm Nói, nghe bíp là nói cụm tiếng Anh. Cố nói trong 3 giây.';
+  const body = `<div class="say-meaning">${meaning}</div><div class="say-count" id="sayCount"></div>${sayRevealed ? `<div class="say-term">${term}</div>` : ''}`;
+  const actions = `<button class="speak-small shadow-btn" data-label="Nói" onclick="sayRecord()"><svg class="ic"><use href="#i-mic"/></svg><span>Nói</span></button>`
+    + (sayRevealed ? '' : '<button class="speak-small" onclick="sayReveal()">Hiện đáp án</button>');
   const box = it.sayBox || 0;
   document.getElementById('sayTag').textContent = it.sayLast ? `Tiến độ ${box}/${SAY_DONE}` : 'Cụm mới';
-  document.getElementById('sayStepNo').textContent = `Bước ${sayStep}/5`;
   document.getElementById('sayTitle').textContent = title;
   document.getElementById('sayHint').textContent = hint;
   document.getElementById('sayBody').innerHTML = body;
   document.getElementById('sayActions').innerHTML = actions;
   let rate = '';
-  if(sayStep === 1 && sayRated){
+  if(sayRated){
     const [, m, d] = (it.sayNext || '').split('-');
     rate = `<span class="muted">${sayMastered(it) ? 'Nằm lòng rồi! Cụm này không hỏi lại nữa.' : `Đã lưu. Ôn lại ngày ${+d}/${+m}.`}</span>`;
-  } else if(sayStep === 1 && sayRevealed){
+  } else if(sayRevealed){
     rate = '<button class="btn btn-green btn-sm" onclick="sayRate(\'ok\')">Nói ngay</button>'
       + '<button class="btn btn-soft btn-sm" onclick="sayRate(\'slow\')">Ngập ngừng</button>'
       + '<button class="btn btn-red btn-sm" onclick="sayRate(\'no\')">Chưa ra</button>';
   }
   document.getElementById('sayRate').innerHTML = rate;
   const next = document.getElementById('sayNextBtn');
-  next.textContent = sayStep === 5 ? 'Xong' : 'Tiếp';
-  next.disabled = sayStep === 1 && !sayRated;
-}
-function sayListen(){
-  const it = sayItem();
-  if(it) speakText(sayStep === 3 ? sayText(it) : it.term);
+  next.disabled = !sayRated;
 }
 function sayReveal(){
   sayRevealed = true;
@@ -3930,37 +3893,26 @@ function sayReveal(){
   if(it) speakText(it.term);
 }
 function sayRecord(){
-  if(speakShadowOn){
-    if(speakRecording && sayStep >= 4){ speakRecording.finish(); return; }   // câu tự nói: bấm Dừng = nói xong, giữ bản ghi
-    stopSpeaking(); return;
-  }
+  if(speakShadowOn){ stopSpeaking(); return; }
   const it = sayItem();
   if(!it) return;
   if(!(speakRecordOn && micSupported())){
     // Không ghi âm được (hoặc đã tắt Ghi âm trong Cài đặt): vẫn nói to được, app chỉ không phát lại giọng
     showTakes('<span class="take-note">Máy này đang không ghi âm. Cứ nói to, rồi bấm Tiếp.</span>');
-    if(sayStep === 3){ sayTakes++; renderSay(); }
-    if(sayStep === 1) sayReveal();
+    sayReveal();
     return;
   }
-  const opts = {};
-  let text = it.term;
-  if(sayStep === 3){ text = sayText(it); opts.onTake = ()=>{ sayTakes++; renderSay(); }; }
-  if(sayStep === 1){
-    opts.wait = 3000;
-    opts.onTake = ()=>{ sayRevealed = true; renderSay(); };
-    opts.onStart = ()=>{
+  shadowRecord(it.term, {
+    wait: 3000,
+    onTake: ()=>{ sayRevealed = true; renderSay(); },
+    onStart: ()=>{
       let n = 3;
       const show = ()=>{ const el = document.getElementById('sayCount'); if(el) el.textContent = n > 0 ? n : ''; };
       show();
       clearInterval(sayCountTimer);
       sayCountTimer = setInterval(()=>{ n--; show(); if(n <= 0) clearInterval(sayCountTimer); }, 1000);
-    };
-  }
-  // Câu tự nói (bước 4–5): vừa nói vừa nghĩ, nên ngừng tới 3 giây vẫn ghi tiếp, nói dài tới 30 giây. Máy không đo được
-  // mức âm (hay gặp trên iPhone) thì ghi tới 20 giây hoặc tới khi bấm Dừng.
-  if(sayStep >= 4){ text = sayStep === 4 ? sayText(it) : it.term; opts.mineOnly = true; opts.wait = 6000; opts.giveUp = 20000; opts.cap = 30000; opts.silence = 3000; }
-  shadowRecord(text, opts);
+    },
+  });
 }
 function sayRate(level){
   const it = sayItem();
@@ -3978,18 +3930,10 @@ function sayRate(level){
   renderSayEntry();
 }
 function sayGoNext(){
-  if(sayStep === 1 && !sayRated) return;
-  clearInterval(sayCountTimer);
-  stopSpeaking(); clearTakes();
-  if(sayStep >= 5){
-    closeSay();
-    launchConfetti();
-    showToast('Xong cụm hôm nay!');
-    return;
-  }
-  sayStep++;
-  sayTakes = 0;
-  renderSay();
+  if(!sayRated) return;
+  closeSay();
+  launchConfetti();
+  showToast('Xong cụm hôm nay!');
 }
 
 let pendingPasteText = null;
